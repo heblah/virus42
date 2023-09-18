@@ -6,12 +6,12 @@
 #    By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/06/22 16:55:50 by halvarez          #+#    #+#              #
-#    Updated: 2023/09/18 10:09:01 by halvarez         ###   ########.fr        #
+#    Updated: 2023/09/18 10:35:22 by halvarez         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 #Default build version called with make rule = release
-build			:=
+build			:= gdb
 
 #Compilation of the mandatory part
 COLLEEN    	= Colleen
