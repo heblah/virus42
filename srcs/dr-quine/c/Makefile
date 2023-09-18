@@ -6,7 +6,7 @@
 #    By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/06/22 16:55:50 by halvarez          #+#    #+#              #
-#    Updated: 2023/09/18 09:36:53 by halvarez         ###   ########.fr        #
+#    Updated: 2023/09/18 10:09:01 by halvarez         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,6 +45,10 @@ CFLAGS			= ${cflags.release} ${cflags.${build}}
 		${CC} ${CFLAGS} -c $< -o ${<:.c=.o}
 
 all:    ${COLLEEN} ${GRACE} ${SULLY}
+
+colleen:${COLLEEN}
+grace:	${GRACE}
+sully:	${SULLY}
 
 #Mandatory rules
 ${COLLEEN}:${OBJ_C}
