@@ -1,1 +1,0 @@
-Sully.o: Sully.c
