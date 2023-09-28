@@ -6,7 +6,7 @@
 #    By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/06/22 16:55:50 by halvarez          #+#    #+#              #
-#    Updated: 2023/09/18 10:35:22 by halvarez         ###   ########.fr        #
+#    Updated: 2023/09/18 10:47:34 by halvarez         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,7 +37,7 @@ RM			= rm -rf
 
 #Conditionnal flags depending on the building version
 cflags.release	:= -Wall -Wextra -Werror -MMD -MP
-cflags.gdb		:= -g
+cflags.gdb		:= -g1
 cflags.sanitize	:= -g -fsanitize=address
 CFLAGS			= ${cflags.release} ${cflags.${build}}
 
