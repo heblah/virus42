@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 16:20:01 by halvarez          #+#    #+#             */
-/*   Updated: 2023/10/20 11:43:11 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/10/20 18:05:59 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,7 @@ void daemonize(void)
 		exit(EXIT_SUCCESS);
 	else if (pid == 0)
 	{
-		// Become leader of the processes group
-		setpgid(0, 0);
-		// Create a new session
+		// Create a new sessio
 		setsid();
 		// Second fork to detach from terminal
 		pid = fork();
@@ -54,9 +52,6 @@ void daemonize(void)
 		}
 		else if (pid == 0)
 		{
-			// Close all open file discriptors
-			//for (int i = getdtablesize(); i >= 3; i--)
-			//	close(i);
 			// Redirect stdin, stdout and stderr to /dev/null
 			freopen("/dev/null", "r", stdin);
 			freopen("/dev/null", "w", stdout);
