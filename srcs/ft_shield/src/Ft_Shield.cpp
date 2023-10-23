@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/10/23 18:18:07 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/10/23 18:31:42 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,11 @@
 #include <arpa/inet.h>
 
 #include "src/Ft_Shield.hpp"
+
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
+#define DAEMON_LOG_PATH "/var/log/matt_daemon"
+#define DAEMON_LOCK_FILE "/var/lock/matt_daemon"
 
 /* Constructors ============================================================= */
 Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3)
