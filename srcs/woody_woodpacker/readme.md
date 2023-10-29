@@ -36,12 +36,12 @@ ELF files are composed of three major components:
 
 ## Sources
 
-https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
-https://intezer.com/blog/research/executable-linkable-format-101-part1-sections-segments/
-https://en.wikipedia.org/wiki/Data_segment
+[Executable_and_Linkable_Format](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)  
+[Executable-linkable-format-101-part1-sections-segments](https://intezer.com/blog/research/executable-linkable-format-101-part1-sections-segments/)  
+[Data_segment](https://en.wikipedia.org/wiki/Data_segment)
 
 ## To explore further
 
-https://www.akkadia.org/drepper/dsohowto.pdf
-https://reverseengineering.stackexchange.com/questions/1992/what-is-plt-got 
-https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html
+[How To Write Shared Libraries](https://www.akkadia.org/drepper/dsohowto.pdf)  
+[what-is-plt-got ](https://reverseengineering.stackexchange.com/questions/1992/what-is-plt-got)  
+[plt-and-got-the-key-to-code-sharing-and-dynamic-libraries](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html)
