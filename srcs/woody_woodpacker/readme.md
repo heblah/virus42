@@ -21,7 +21,7 @@ ELF files are composed of three major components:
 - Segments =  Program Headers, break down the structure of an ELF binary into suitable chunks to prepare the executable to be loaded into memory
     - can be seen using `readelf -l ./binary`
 
-![Illustation of an ELF structure](resources/images/RMV0g.png?raw=true)
+![Illustation of an ELF structure](../../resources/images/RMV0g.png?raw=true)
 
 
 ### Authorized functions
