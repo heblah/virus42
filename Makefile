@@ -20,7 +20,7 @@ MAIN			= main.c
 SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 
 PACKER_DIR		= ${SRC_DIR}woody_woodpacker
-PACKER			= #list of files
+PACKER			= /srcs/*.c
 SRC				+= $(addprefix ${PACKER_DIR}, ${PACKER})
 
 FAMINE_DIR		= ${SRC_DIR}famine
