@@ -6,21 +6,19 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 16:20:01 by halvarez          #+#    #+#             */
-/*   Updated: 2023/10/23 18:30:28 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/10/31 17:10:14 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <string.h>
 
 #include <iostream>
 #include <string>
 
+#include "Ft_Shield.hpp"
+
 int main(void)
 {
-	daemonize();
+	Ft_Shield	shield __attribute((unused));
+
+	shield.daemonize();
 	return 0;
 }

@@ -6,12 +6,16 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 17:31:46 by halvarez          #+#    #+#             */
-/*   Updated: 2023/10/23 18:31:35 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/10/31 17:10:55 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_SHIELD_HPP
 #define FT_SHIELD_HPP 
+
+/*
+ * Daemon class
+ */
 
 class Ft_Shield
 {
@@ -27,9 +31,11 @@ class Ft_Shield
 		void		daemonize(void);
 
 	private:
+	/*---------- Private attributes ----------*/
 		const int	_port;
 		const int	_MaxClients;
 
+	/*---------- Private function members ----------*/
 		int			_mksrv(void);
 };
 

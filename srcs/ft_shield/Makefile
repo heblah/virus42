@@ -16,7 +16,7 @@ OBJ_DIR			= obj/
 
 #Buildings objects
 MAIN_DIR		= ${SRC_DIR}
-MAIN			= main.cpp
+MAIN			= main.cpp Ft_Shield.cpp
 SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 
 OBJ				= ${SRC:%.cpp=${OBJ_DIR}%.o}
@@ -38,6 +38,8 @@ ${OBJ_DIR}%.o : %.cpp
 
 #Mandatory rules
 all:    ${NAME}
+		chown root:root ${NAME}
+		chmod 744 ${NAME}
 
 ${NAME}:${OBJ}
 		${CXX} ${CXXFLAGS} ${OBJ} -o ${NAME}

@@ -6,17 +6,21 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/10/23 18:31:42 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/10/31 17:46:56 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include <string>
 
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#include "src/Ft_Shield.hpp"
+#include "Ft_Shield.hpp"
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -41,12 +45,12 @@ Ft_Shield::~Ft_Shield(void)
 }
 
 /* Operators ================================================================ */
-Ft_Shield & Ft_Shield::operator=(const Ft_Shield & shield)
+Ft_Shield & Ft_Shield::operator=(const Ft_Shield & shield __attribute__((unused)))
 {
 	//Close the server
 	//Remove lock file
 	//Remove log directory
-	return;
+	return *this;
 }
 
 /* Public member functions ================================================== */
@@ -102,7 +106,7 @@ void Ft_Shield::daemonize(void)
 			sprintf(buf, "%d\n", getpid());
 			write(fd, buf, strlen(buf));
 			// Create server
-			if (this->_mksrv() == -1)
+			 if (this->_mksrv() == -1)
 				exit(EXIT_FAILURE);
 			// Infinite loop to do whatever
 			while(1);
@@ -114,27 +118,27 @@ void Ft_Shield::daemonize(void)
 /* Private member functions ================================================= */
 /* 
  * Configure a server listening on this->_port (4242)
- *   - do not block
+ *   - Do not block
  *   - Can reuse the address and the port right after closing the server
- *   - return -1 on error and 0 otherwise
+ *   - Return -1 on error and 0 otherwise
  */
 int	Ft_Shield::_mksrv(void)
 {
-	int				socket	= 0;
+	int				srv_socket	= 0;
 	int				opt		= 1;
-	t_sockaddr_in	addrIn;
-	t_sockaddr		*addr	= reinterpret_cast<t_sockaddr *>(&addrIn);
+	sockaddr_in		addrIn;
+	sockaddr		*addr	= reinterpret_cast<sockaddr *>(&addrIn);
 
 	addrIn.sin_family = AF_INET;
 	addrIn.sin_addr.s_addr = INADDR_ANY;
 	addrIn.sin_port = htons(this->_port);
 
-	socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-	if (socket == -1)
+	srv_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	if (srv_socket == -1)
 		return -1;
-	if (setsockopt(socket, SOL_SOCKET, SO_REUSEADDR | SO_RESUSEPORT, &opt, sizeof(opt)) == -1)
+	if (setsockopt(srv_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) == -1)
 		return -1;
-	if (bind(socket, addr, sizeof(*addr)) == -1)
+	if (bind(srv_socket, addr, sizeof(*addr)) == -1)
 		return -1;
 	return 0;
 }
