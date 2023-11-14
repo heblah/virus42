@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/10/31 17:46:56 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/14 14:41:47 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <arpa/inet.h>
 
 #include "Ft_Shield.hpp"
@@ -106,7 +107,7 @@ void Ft_Shield::daemonize(void)
 			sprintf(buf, "%d\n", getpid());
 			write(fd, buf, strlen(buf));
 			// Create server
-			 if (this->_mksrv() == -1)
+			 if (this->_mkSrv() == -1)
 				exit(EXIT_FAILURE);
 			// Infinite loop to do whatever
 			while(1);
@@ -122,7 +123,7 @@ void Ft_Shield::daemonize(void)
  *   - Can reuse the address and the port right after closing the server
  *   - Return -1 on error and 0 otherwise
  */
-int	Ft_Shield::_mksrv(void)
+int	Ft_Shield::_mkSrv(void)
 {
 	int				srv_socket	= 0;
 	int				opt		= 1;
@@ -141,4 +142,16 @@ int	Ft_Shield::_mksrv(void)
 	if (bind(srv_socket, addr, sizeof(*addr)) == -1)
 		return -1;
 	return 0;
+}
+
+/*
+ * Run a simple server using select api
+ * Close the client socket if it is disconnected or sends a 'quit' string
+ */
+int	Ft_Shield::_runSrv(void)
+{
+	int		maxfd = 2;
+	fd_set	master_set, read_set, write_set;
+
+	FD_ZERO( &master_set )
 }

@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 17:31:46 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/01 09:20:51 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/14 14:49:20 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,9 +34,12 @@ class Ft_Shield
 	/*---------- Private attributes ----------------*/
 		const int	_port;
 		const int	_MaxClients;
+		int[3]		_clients;
 
-	/*---------- Private function members ----------*/
-		int			_mksrv(void);
+	/*---------- Private function members ---------*/
+		int			_mkSrv(void);
+		int			_runSrv(void);
+		int			_acceptConnexion(void)
 };
 
 #endif /* FT_SHIELD_HPP */
