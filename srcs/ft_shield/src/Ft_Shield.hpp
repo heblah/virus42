@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 17:31:46 by halvarez          #+#    #+#             */
-/*   Updated: 2023/10/31 17:10:55 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/14 14:36:21 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 class Ft_Shield
 {
 	public:
-	/*---------- Constructors ----------*/
+	/*---------- Constructors ---------------------*/
 					Ft_Shield(void);
 					Ft_Shield(const Ft_Shield & shield);
 					~Ft_Shield(void);
@@ -31,12 +31,15 @@ class Ft_Shield
 		void		daemonize(void);
 
 	private:
-	/*---------- Private attributes ----------*/
+	/*---------- Private attributes ---------------*/
 		const int	_port;
 		const int	_MaxClients;
+		int[3]		_clients;
 
-	/*---------- Private function members ----------*/
-		int			_mksrv(void);
+	/*---------- Private function members ---------*/
+		int			_mkSrv(void);
+		int			_runSrv(void);
+		int			_acceptConnexion(void)
 };
 
 #endif /* FT_SHIELD_HPP */
