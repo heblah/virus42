@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/14 14:41:47 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/16 11:44:58 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
 
@@ -31,6 +30,11 @@
 /* Constructors ============================================================= */
 Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3)
 {
+	sockaddr_in		&addrIn 	= *reinterpret_cast<sockaddr_in *>(&this->_addr);
+
+	addrIn.sin_family = AF_INET;
+	addrIn.sin_addr.s_addr = INADDR_ANY;
+	addrIn.sin_port = htons(this->_port);
 	return;
 }
 
@@ -126,21 +130,16 @@ void Ft_Shield::daemonize(void)
 int	Ft_Shield::_mkSrv(void)
 {
 	int				srv_socket	= 0;
-	int				opt		= 1;
-	sockaddr_in		addrIn;
-	sockaddr		*addr	= reinterpret_cast<sockaddr *>(&addrIn);
-
-	addrIn.sin_family = AF_INET;
-	addrIn.sin_addr.s_addr = INADDR_ANY;
-	addrIn.sin_port = htons(this->_port);
+	int				opt			= 1;
 
 	srv_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (srv_socket == -1)
 		return -1;
 	if (setsockopt(srv_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) == -1)
 		return -1;
-	if (bind(srv_socket, addr, sizeof(*addr)) == -1)
+	if (bind(srv_socket, &this->_addr, sizeof(this->_addr)) == -1)
 		return -1;
+	this->_socket = srv_socket;
 	return 0;
 }
 
@@ -148,10 +147,32 @@ int	Ft_Shield::_mkSrv(void)
  * Run a simple server using select api
  * Close the client socket if it is disconnected or sends a 'quit' string
  */
-int	Ft_Shield::_runSrv(void)
+void	Ft_Shield::_runSrv(void)
 {
-	int		maxfd = 2;
+	int		maxfd = 3;
+	//int		client = -1;
 	fd_set	master_set, read_set, write_set;
 
-	FD_ZERO( &master_set )
+	FD_ZERO( &master_set );
+	FD_SET(this->_socket, &master_set);
+	while(1)
+	{
+		read_set = master_set;
+		write_set = master_set;
+		if (select(maxfd + 1, &read_set, &write_set, NULL, NULL) < 0)
+			continue;
+		for(int fd = 0; fd <= maxfd; fd++)
+		{
+			if (FD_ISSET(fd, &read_set) && fd == this->_socket)
+			{
+				//client = accept(this->_socket, )
+
+			}
+			if (FD_ISSET(fd, &read_set) && fd != this->_socket)
+			{
+
+			}
+		}
+	}
+	return;
 }
