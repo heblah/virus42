@@ -7,7 +7,7 @@
 #
 
 #Default build version called with make rule = release
-build			:=
+build			:=gdb
 
 #Compilation of the mandatory part
 NAME			= ft_shield

@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 17:31:46 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/16 11:45:31 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/17 09:27:04 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ class Ft_Shield
 		struct sockaddr	_addr;
 		int				_socket;
 		int				_clients[3]__attribute__((unused));
+		//std::string		_buffer;
 
 	/*---------- Private function members ----------*/
 		int			_mkSrv(void);

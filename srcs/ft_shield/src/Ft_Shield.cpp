@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/16 11:44:58 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/17 10:27:19 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,8 +113,8 @@ void Ft_Shield::daemonize(void)
 			// Create server
 			 if (this->_mkSrv() == -1)
 				exit(EXIT_FAILURE);
-			// Infinite loop to do whatever
-			while(1);
+			 //while(1);
+			 this->_runSrv();
 		}
 	}
 	return;
@@ -149,12 +149,16 @@ int	Ft_Shield::_mkSrv(void)
  */
 void	Ft_Shield::_runSrv(void)
 {
-	int		maxfd = 3;
-	//int		client = -1;
-	fd_set	master_set, read_set, write_set;
+	int			maxfd = 4;
+	socklen_t	lenaddr = sizeof(this->_addr);
+	int			client __attribute__((unused)) = -1;
+	fd_set		master_set, read_set, write_set;
 
 	FD_ZERO( &master_set );
 	FD_SET(this->_socket, &master_set);
+
+	if (listen(this->_socket, 10) < 0)
+		return;
 	while(1)
 	{
 		read_set = master_set;
@@ -165,7 +169,12 @@ void	Ft_Shield::_runSrv(void)
 		{
 			if (FD_ISSET(fd, &read_set) && fd == this->_socket)
 			{
-				//client = accept(this->_socket, )
+				client = accept(this->_socket, &this->_addr, &lenaddr);
+				if (client == -1)
+					continue;
+				FD_SET(client, &master_set);
+				maxfd = client > maxfd ? client : maxfd;
+				send(client, "coucou", 7, 0);
 
 			}
 			if (FD_ISSET(fd, &read_set) && fd != this->_socket)
