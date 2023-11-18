@@ -6,12 +6,13 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/17 10:27:19 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/18 23:15:51 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include <string>
+#include <csignal>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -28,33 +29,41 @@
 #define DAEMON_LOCK_FILE "/var/lock/matt_daemon"
 
 /* Constructors ============================================================= */
-Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3)
+Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true)
 {
 	sockaddr_in		&addrIn 	= *reinterpret_cast<sockaddr_in *>(&this->_addr);
 
 	addrIn.sin_family = AF_INET;
 	addrIn.sin_addr.s_addr = INADDR_ANY;
 	addrIn.sin_port = htons(this->_port);
+
+	/* Add a sginal handler for interrution */
 	return;
 }
 
 Ft_Shield::Ft_Shield(const Ft_Shield &shield) : _port(shield._port), _MaxClients(shield._MaxClients)
 {
+	/*
+	 * Has to delete the lock file
+	 * Maybe clean the log file
+	 */
 	return;
 }
 
 /* Destructor =============================================================== */
 Ft_Shield::~Ft_Shield(void)
 {
+	/*
+	* Close the server
+	* Remove lock file
+	* Remove log directory
+	*/
 	return;
 }
 
 /* Operators ================================================================ */
 Ft_Shield & Ft_Shield::operator=(const Ft_Shield & shield __attribute__((unused)))
 {
-	//Close the server
-	//Remove lock file
-	//Remove log directory
 	return *this;
 }
 
@@ -62,10 +71,9 @@ Ft_Shield & Ft_Shield::operator=(const Ft_Shield & shield __attribute__((unused)
 void Ft_Shield::daemonize(void)
 {
 	int	pid		= 0;
-	int	fd		= 0;
 	char buf[9] = {'\0'};
 
-	// First fork to detach from the current processus
+	/* First fork to detach from the current processus */
 	pid = fork();
 	if (pid == -1)
 		exit(EXIT_FAILURE);
@@ -73,9 +81,9 @@ void Ft_Shield::daemonize(void)
 		exit(EXIT_SUCCESS);
 	else if (pid == 0)
 	{
-		// Create a new session
+		/* Create a new session */
 		setsid();
-		// Second fork to detach from terminal
+		/* Second fork to detach from terminal */
 		pid = fork();
 		if (pid == -1)
 			exit(EXIT_FAILURE);
@@ -86,35 +94,36 @@ void Ft_Shield::daemonize(void)
 		}
 		else if (pid == 0)
 		{
-			// Redirect stdin, stdout and stderr to /dev/null
+			/* Redirect stdin, stdout and stderr to /dev/null */
 			freopen("/dev/null", "r", stdin);
 			freopen("/dev/null", "w", stdout);
 			freopen("/dev/null", "w", stderr);
-			// Set default permisions
+			/* Set default permisions */
 			umask(0000);
-			// Test if log path exists, creates it and moves in otherwise
+			/* Test if log path exists, creates it and moves in otherwise */
 			if (chdir(DAEMON_LOG_PATH) == -1)
 			{
 				if (mkdir(DAEMON_LOG_PATH, 0755) == -1)
-					exit(EXIT_FAILURE);
+					this->_run = false;
 				if (chdir(DAEMON_LOG_PATH) == -1)
-					exit(EXIT_FAILURE);
+					this->_run = false;
 			}
-			// Create a lock file == check if an instance of this daemon is running
-			fd = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT);
-			if (fd == -1)
-				exit(EXIT_FAILURE);
-			// Lock the file, exit if the file is already locked
-			if (lockf(fd, F_TLOCK, 0) == -1)
-				exit(EXIT_SUCCESS);
-			// Write the daemon pid in the lock file
-			sprintf(buf, "%d\n", getpid());
-			write(fd, buf, strlen(buf));
-			// Create server
-			 if (this->_mkSrv() == -1)
-				exit(EXIT_FAILURE);
-			 //while(1);
-			 this->_runSrv();
+			/* 
+			 * Create a lock file
+			 * Open fails if the file already exists using this flags combination: O_CREAT | O_EXCL
+			 * Fail if another instance of ft_shield is running
+			 */
+			this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
+			if (this->_lockFile != -1)
+			{
+				/* Write the daemon pid in the lock file */
+				sprintf(buf, "%d\n", getpid());
+				write(this->_lockFile, buf, strlen(buf));
+				/* Create server */
+				 if (this->_mkSrv() == -1)
+					this->_run = false;
+				 this->_runSrv();
+			}
 		}
 	}
 	return;
@@ -159,7 +168,7 @@ void	Ft_Shield::_runSrv(void)
 
 	if (listen(this->_socket, 10) < 0)
 		return;
-	while(1)
+	while(this->_run)
 	{
 		read_set = master_set;
 		write_set = master_set;

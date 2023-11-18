@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 17:31:46 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/17 09:27:04 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/18 22:51:08 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <sys/socket.h>
 
 /*
- * Daemon class
+ * Ft_Shield class:
  */
 
 class Ft_Shield
@@ -25,6 +25,7 @@ class Ft_Shield
 	/*---------- Constructors ----------------------*/
 					Ft_Shield(void);
 					Ft_Shield(const Ft_Shield & shield);
+	/*---------- Destructor ------------------------*/
 					~Ft_Shield(void);
 
 		Ft_Shield &	operator=(const Ft_Shield & shield);
@@ -36,9 +37,10 @@ class Ft_Shield
 	/*---------- Private attributes ----------------*/
 		const int		_port;
 		const int		_MaxClients;
+		bool			_run;
 		struct sockaddr	_addr;
+		int				_lockFile;
 		int				_socket;
-		int				_clients[3]__attribute__((unused));
 		//std::string		_buffer;
 
 	/*---------- Private function members ----------*/
