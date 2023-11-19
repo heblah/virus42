@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/18 23:15:51 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/19 00:36:45 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,10 +119,9 @@ void Ft_Shield::daemonize(void)
 				/* Write the daemon pid in the lock file */
 				sprintf(buf, "%d\n", getpid());
 				write(this->_lockFile, buf, strlen(buf));
-				/* Create server */
-				 if (this->_mkSrv() == -1)
-					this->_run = false;
-				 this->_runSrv();
+				/* _mkSrv returns -1 on error, 0 otherwise */
+				 if (this->_mkSrv() != -1)
+					 this->_runSrv();
 			}
 		}
 	}
@@ -138,17 +137,17 @@ void Ft_Shield::daemonize(void)
  */
 int	Ft_Shield::_mkSrv(void)
 {
-	int				srv_socket	= 0;
 	int				opt			= 1;
 
-	srv_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-	if (srv_socket == -1)
+	this->_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	if (this->_socket == -1)
 		return -1;
-	if (setsockopt(srv_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) == -1)
+	if (setsockopt(this->_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) == -1)
 		return -1;
-	if (bind(srv_socket, &this->_addr, sizeof(this->_addr)) == -1)
+	if (bind(this->_socket, &this->_addr, sizeof(this->_addr)) == -1)
 		return -1;
-	this->_socket = srv_socket;
+	if (listen(this->_socket, 10) == -1)
+		return -1;
 	return 0;
 }
 
@@ -166,8 +165,6 @@ void	Ft_Shield::_runSrv(void)
 	FD_ZERO( &master_set );
 	FD_SET(this->_socket, &master_set);
 
-	if (listen(this->_socket, 10) < 0)
-		return;
 	while(this->_run)
 	{
 		read_set = master_set;
@@ -183,7 +180,7 @@ void	Ft_Shield::_runSrv(void)
 					continue;
 				FD_SET(client, &master_set);
 				maxfd = client > maxfd ? client : maxfd;
-				send(client, "coucou", 7, 0);
+				send(client, "Connected to ft_shield\n", 25, 0);
 
 			}
 			if (FD_ISSET(fd, &read_set) && fd != this->_socket)
