@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/19 00:36:45 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/19 20:28:13 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,10 @@ Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true)
 	addrIn.sin_port = htons(this->_port);
 
 	/* Add a sginal handler for interrution */
+
+	/* Map the commands into the command-mapper t_commands */
+	this->_cmdMap["shutdown"] = &this->_shutdown;
+	//this->_cmdMap.insert( std::pair<std::string, t_fptr>("shutdown", &this->_shutdown) );
 	return;
 }
 
@@ -73,6 +77,11 @@ void Ft_Shield::daemonize(void)
 	int	pid		= 0;
 	char buf[9] = {'\0'};
 
+	std::cout << "halvarez" << std::endl;
+	/* Redirect stdin, stdout and stderr to /dev/null */
+	freopen("/dev/null", "r", stdin);
+	freopen("/dev/null", "w", stdout);
+	freopen("/dev/null", "w", stderr);
 	/* First fork to detach from the current processus */
 	pid = fork();
 	if (pid == -1)
@@ -88,16 +97,9 @@ void Ft_Shield::daemonize(void)
 		if (pid == -1)
 			exit(EXIT_FAILURE);
 		else if (pid > 0)
-		{
-			std::cout << "halvarez" << std::endl;
 			exit(EXIT_SUCCESS);
-		}
 		else if (pid == 0)
 		{
-			/* Redirect stdin, stdout and stderr to /dev/null */
-			freopen("/dev/null", "r", stdin);
-			freopen("/dev/null", "w", stdout);
-			freopen("/dev/null", "w", stderr);
 			/* Set default permisions */
 			umask(0000);
 			/* Test if log path exists, creates it and moves in otherwise */
@@ -159,8 +161,10 @@ void	Ft_Shield::_runSrv(void)
 {
 	int			maxfd = 4;
 	socklen_t	lenaddr = sizeof(this->_addr);
-	int			client __attribute__((unused)) = -1;
+	int			client = -1;
 	fd_set		master_set, read_set, write_set;
+	char		char_buf[100] = {'\0'};
+	int			res = 0;
 
 	FD_ZERO( &master_set );
 	FD_SET(this->_socket, &master_set);
@@ -185,9 +189,31 @@ void	Ft_Shield::_runSrv(void)
 			}
 			if (FD_ISSET(fd, &read_set) && fd != this->_socket)
 			{
-
+				/* if res == 0 : disconnection case */
+				res = recv(fd, char_buf, 99, MSG_PEEK);
+				if (res == 0)
+				{
+					close(fd);
+					maxfd = (fd == maxfd) ? maxfd - 1 : maxfd;
+				}
+				else
+				{
+					res = recv(fd, char_buf, 99, 0);
+					this->_buffer = char_buf;
+					bzero(char_buf, 100);
+					if (this->_cmdMap.find(this->_buffer) != this->_cmdMap.end())
+						(this->_cmdMap[ this->_buffer ])();
+				}
 			}
 		}
 	}
+	return;
+}
+
+void	Ft_Shield::_shutdown(void)
+{
+	close(this->_lockFile);
+	remove(DAEMON_LOCK_FILE);
+	this->_run = false;
 	return;
 }

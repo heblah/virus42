@@ -6,13 +6,14 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 17:31:46 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/18 22:51:08 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/19 20:35:09 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_SHIELD_HPP
 #define FT_SHIELD_HPP 
 
+#include <map>
 #include <sys/socket.h>
 
 /*
@@ -22,6 +23,9 @@
 class Ft_Shield
 {
 	public:
+	/*---------- Public typedef --------------------*/
+		typedef void (Ft_Shield::*t_fptr)(void);
+		typedef std::map<std::string, t_fptr> t_commands;
 	/*---------- Constructors ----------------------*/
 					Ft_Shield(void);
 					Ft_Shield(const Ft_Shield & shield);
@@ -40,12 +44,15 @@ class Ft_Shield
 		bool			_run;
 		struct sockaddr	_addr;
 		int				_lockFile;
+		int				_logFile __attribute__((unused));
 		int				_socket;
-		//std::string		_buffer;
+		std::string		_buffer;
+		t_commands		_cmdMap;
 
 	/*---------- Private function members ----------*/
 		int			_mkSrv(void);
 		void		_runSrv(void);
+		void		_shutdown(void);
 };
 
 #endif /* FT_SHIELD_HPP */
