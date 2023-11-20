@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/20 18:10:02 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/20 18:39:34 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,9 @@ void	Ft_Shield::_checkInstance(void)
 {
 	int		fd[2];
 	int		pid;
+	int		count = 0;
 	char	char_buf[100] = {'\0'};
+	std::size_t	found = -1;
 
 	//this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
 	if (pipe(fd) != -1)
@@ -157,9 +159,15 @@ void	Ft_Shield::_checkInstance(void)
 			close(fd[1]);
 			waitpid(pid, NULL, 0);
 			read(fd[0], char_buf, 99);
-			this->_buffer = char_buf;
-			write(this->_logFile, char_buf, strlen(char_buf));
 			close(fd[0]);
+			this->_buffer = char_buf;
+			while (this->_buffer.find("ft_shield", found+1) != std::string::npos)
+			{
+				count++;
+				found = this->_buffer.find("ft_shield", found + 1);
+			}
+			if (count > 2)
+				exit(EXIT_SUCCESS);
 		}
 	}
 	return;
