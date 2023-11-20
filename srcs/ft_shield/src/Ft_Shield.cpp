@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/20 17:47:45 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/20 18:10:02 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,7 @@ void Ft_Shield::daemonize(void)
 			 * Open fails if the file already exists using this flags combination: O_CREAT | O_EXCL
 			 * Fail if another instance of ft_shield is running
 			 */
-			//this->_checkInstance();
+			this->_checkInstance();
 			this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
 			if (this->_run == true && this->_lockFile != -1)
 			{
@@ -150,6 +150,7 @@ void	Ft_Shield::_checkInstance(void)
 			close(STDOUT_FILENO);
 			dup2(fd[1], STDOUT_FILENO);
 			system("ps axco pid,command | grep ft_shield");
+			exit(EXIT_SUCCESS);
 		}
 		else if (pid != 0)
 		{
@@ -157,6 +158,7 @@ void	Ft_Shield::_checkInstance(void)
 			waitpid(pid, NULL, 0);
 			read(fd[0], char_buf, 99);
 			this->_buffer = char_buf;
+			write(this->_logFile, char_buf, strlen(char_buf));
 			close(fd[0]);
 		}
 	}
