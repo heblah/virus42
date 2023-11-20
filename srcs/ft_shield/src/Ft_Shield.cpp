@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/20 17:23:48 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/20 17:47:45 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ Ft_Shield::~Ft_Shield(void)
 	close(this->_lockFile);
 	remove(DAEMON_LOCK_FILE);
 	close(this->_logFile);
-	remove(DAEMON_LOG_FILE);
+	//remove(DAEMON_LOG_FILE);
 	return;
 }
 
@@ -97,14 +97,10 @@ void Ft_Shield::daemonize(void)
 		{
 			/* Set default permisions */
 			umask(0000);
-			/* Test if log path exists, creates it and moves in otherwise */
-			if (chdir(DAEMON_LOG_FILE) == -1)
-			{
-				if (mkdir(DAEMON_LOG_FILE, 0755) == -1)
-					this->_run = false;
-				if (chdir(DAEMON_LOG_FILE) == -1)
-					this->_run = false;
-			}
+			/* Open the log file and indentify the beginning of this instance */
+			this->_logFile = open(DAEMON_LOG_FILE, O_RDWR | O_CREAT | O_APPEND);
+			if (this->_logFile != -1)
+				write(this->_logFile, "New log instance:\n", 18);
 			/* 
 			 * Create a lock file
 			 * Open fails if the file already exists using this flags combination: O_CREAT | O_EXCL
@@ -195,7 +191,7 @@ int	Ft_Shield::_mkSrv(void)
  */
 void	Ft_Shield::_runSrv(void)
 {
-	int			maxfd = 4;
+	int			maxfd = this->_socket;
 	socklen_t	lenaddr = sizeof(this->_addr);
 	int			client = -1;
 	fd_set		master_set, read_set, write_set;
@@ -211,7 +207,7 @@ void	Ft_Shield::_runSrv(void)
 		write_set = master_set;
 		if (select(maxfd + 1, &read_set, &write_set, NULL, NULL) < 0)
 			continue;
-		for(int fd = 3; fd <= maxfd; fd++)
+		for(int fd = 0; fd <= maxfd; fd++)
 		{
 			if (FD_ISSET(fd, &read_set) && fd == this->_socket)
 			{
