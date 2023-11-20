@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 17:31:46 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/19 20:35:09 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/20 13:56:09 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,14 +42,15 @@ class Ft_Shield
 		const int		_port;
 		const int		_MaxClients;
 		bool			_run;
-		struct sockaddr	_addr;
 		int				_lockFile;
 		int				_logFile __attribute__((unused));
+		struct sockaddr	_addr;
 		int				_socket;
 		std::string		_buffer;
 		t_commands		_cmdMap;
 
 	/*---------- Private function members ----------*/
+		void		_checkInstance(void);
 		int			_mkSrv(void);
 		void		_runSrv(void);
 		void		_shutdown(void);
