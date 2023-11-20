@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/21 17:31:46 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/20 13:56:09 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/20 16:51:19 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class Ft_Shield
 		bool			_run;
 		int				_lockFile;
 		int				_logFile __attribute__((unused));
+		int				_nClients;
 		struct sockaddr	_addr;
 		int				_socket;
 		std::string		_buffer;

