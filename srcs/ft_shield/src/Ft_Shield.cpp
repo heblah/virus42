@@ -296,7 +296,7 @@ void	Ft_Shield::_reverseShell(int fd)
 	}
 	else if (pid != -1 && pid > 0)
 	{
-		//ras
+		close(fd);
 	}
 	return;
 }
