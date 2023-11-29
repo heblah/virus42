@@ -352,7 +352,11 @@ void	Ft_Shield::_reverseShell(int fd)
 		this->_exit();
 	}
 	else if (pid != -1 && pid > 0)
-		this->_disconnect(fd);
+	{
+		close(fd);
+		this->_maxfd = (fd == this->_maxfd) ? --this->_maxfd : this->_maxfd;
+		this->_nClients--;
+	}
 	return;
 }
 
@@ -393,13 +397,19 @@ void	Ft_Shield::_help(int fd)
  */
 int	Ft_Shield::_password(int fd)
 {
-	std::string	msg = "You have 8s to enter the password:\n";
-	char		char_buf[15] = {'\0'};
-	int			res = 0;
+	std::string		msg = "You have 8s to enter the password:\n";
+	char			char_buf[15] = {'\0'};
+	int				res = 0;
+	unsigned int	time = 0;
 
 	send(fd, msg.c_str(), msg.length(), 0);
-	sleep(8);
-	res = recv(fd, char_buf, 99, 0);
+	while (res <= 0 && time < 8)
+	{
+		res = recv(fd, char_buf, 14, MSG_PEEK | MSG_DONTWAIT);
+		sleep(1);
+		time++;
+	}
+	res = recv(fd, char_buf, 14, MSG_DONTWAIT);
 	if (res <= 0)
 	{
 		msg = "Sorry, time elapsed.\n";
@@ -435,4 +445,10 @@ int	Ft_Shield::_password(int fd)
 			return -1;
 	}
 	return 0;
+}
+
+void	Ft_shield::_root(int fd)
+{
+	this->_buffer = "Enter the path to the file to be executed with root privileges:\n"
+	return;
 }
