@@ -13,10 +13,11 @@ build			:=
 NAME			= woody_woodpacker
 SRC_DIR			= srcs/
 OBJ_DIR			= obj/
+HEADERS_DIR		= headers
 
 #Buildings objects
 MAIN_DIR		= ${SRC_DIR}
-MAIN			= main.c
+MAIN			= main.c copy_binary.c getFileSize.c
 SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 
 OBJ				= ${SRC:%.c=${OBJ_DIR}%.o}
@@ -26,10 +27,10 @@ CC				= cc
 RM				= rm -rf
 
 #Conditionnal flags depending on the building version
-cflags.release	:= -Wall -Wextra -Werror -Wpedantic -pedantic-errors -MMD -MP
+cflags.release	:= -Wall -Wextra -Werror -Wpedantic -pedantic-errors -MMD -MP -I$(HEADERS_DIR)
 cflags.gdb		:= -g3
 cflags.san		:= -g3 -fsanitize=address
-CFLAGS		= ${cflags.release} ${cflags.${build}}
+CFLAGS		= ${cflags.release} ${cflags.san} ${cflags.${build}}
 export			CFLAGS
 
 ${OBJ_DIR}%.o : %.c

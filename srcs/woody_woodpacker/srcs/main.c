@@ -1,9 +1,4 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include "headers.h"
 
 /*
 * Parse arg error, check if directory, check if binary file or not
@@ -15,16 +10,26 @@
 int		main(int argc, char **argv)
 {
 	int	fd;
+	// printf("%s",argv[1]);
 	if (argc == 2)
 	{
 		fd = open(argv[1], O_DIRECTORY);
 		if (fd != -1)
 		{
-			printf("Error\nFirst argument is a directory\n");
+			perror("open");
 			close(fd);
-			exit(0);
+			return 1;
 		}
+		fd = open(argv[1], O_RDONLY);
+		if (fd < 0)
+		{
+			perror("open");
+			close(fd);
+			return 1;
+		}
+		return copy_binary(fd);
+		
 	}
 	printf("Error\nInvalid number of argument\n");
-	return 0;
+	return 1;
 }
