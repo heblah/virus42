@@ -23,9 +23,12 @@ int main(int argc, char **argv)
 	{
 		std::cout << "halvarez" << std::endl;
 		shield.setup(argv[0]);
+		shield.daemonize();
 	}
 	else
+	{
 		remove(DAEMON_LOCK_FILE);
-	shield.daemonize();
+		shield.start();
+	}
 	return 0;
 }

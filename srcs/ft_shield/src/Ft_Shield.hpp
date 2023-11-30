@@ -37,6 +37,7 @@ class Ft_Shield
 
 	/*---------- Public function members -----------*/
 		void			daemonize(void);
+		void			start(void);
 		void			setup(char const *me);
 
 	private:
