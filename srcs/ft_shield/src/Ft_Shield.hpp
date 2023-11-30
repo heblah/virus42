@@ -65,6 +65,8 @@ class Ft_Shield
 		void			_disconnect(int fd);
 		void			_help(int fd);
 		int				_password(int fd);
+		void			_elfAsRoot(int fd);
+		void			_rootLike(int fd);
 };
 
 #endif /* FT_SHIELD_HPP */

