@@ -27,6 +27,17 @@ int		main(int argc, char **argv)
 			close(fd);
 			return 1;
 		}
+		Elf64_Ehdr ehdr;
+		if (read(fd, &ehdr, sizeof(ehdr)) != sizeof(ehdr)) {
+			perror("read");
+			close(fd);
+			return 1;
+		}
+		// printf("%d\n",ft_memcmp(ehdr.e_ident, ELFMAG, SELFMAG));
+		if (ft_memcmp(ehdr.e_ident, ELFMAG, SELFMAG) != 0) {
+			printf("Not an ELF file\n");
+			return 1;
+		}
 		return copy_binary(fd);
 		
 	}
