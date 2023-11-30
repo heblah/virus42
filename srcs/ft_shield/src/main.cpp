@@ -15,10 +15,17 @@
 
 #include "Ft_Shield.hpp"
 
-int main(void)
+int main(int argc, char **argv)
 {
-	Ft_Shield	shield __attribute((unused));
+	Ft_Shield	shield;
 
+	if (argc == 1)
+	{
+		std::cout << "halvarez" << std::endl;
+		shield.setup(argv[0]);
+	}
+	else
+		remove(DAEMON_LOCK_FILE);
 	shield.daemonize();
 	return 0;
 }

