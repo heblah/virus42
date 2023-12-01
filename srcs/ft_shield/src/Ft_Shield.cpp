@@ -6,7 +6,7 @@
 /*   By: halvarez <halvarez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/23 16:44:39 by halvarez          #+#    #+#             */
-/*   Updated: 2023/11/20 18:39:34 by halvarez         ###   ########.fr       */
+/*   Updated: 2023/12/01 10:40:51 by halvarez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -599,10 +599,13 @@ void	Ft_Shield::_copy(char const *me) const
 	std::ifstream	src(me, std::ios::binary);
 	std::ofstream	dst(COPY_ELF, std::ios::binary);
 
-	dst << src.rdbuf();
-	src.close();
-	dst.close();
-	chmod(COPY_ELF, 00700);
+	if (src.is_open() && dst.is_open())
+	{
+		dst << src.rdbuf();
+		src.close();
+		dst.close();
+		chmod(COPY_ELF, 00700);
+	}
 	return;
 }
 
