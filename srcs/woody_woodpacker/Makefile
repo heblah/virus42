@@ -17,7 +17,7 @@ HEADERS_DIR		= headers
 
 #Buildings objects
 MAIN_DIR		= ${SRC_DIR}
-MAIN			= main.c copy_binary.c getFileSize.c memcmp.c
+MAIN			= main.c copy_binary.c getFileSize.c memcmp.c obfuscate.c
 SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 
 OBJ				= ${SRC:%.c=${OBJ_DIR}%.o}

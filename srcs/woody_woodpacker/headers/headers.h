@@ -15,5 +15,6 @@
 int copy_binary(int source_file);
 off_t getFileSize(int fd);
 int	ft_memcmp(const void *s1, const void *s2, size_t n);
+int obfuscate(void);
 
 #endif

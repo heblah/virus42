@@ -10,7 +10,7 @@
 int		main(int argc, char **argv)
 {
 	int	fd;
-	// printf("%s",argv[1]);
+	printf("%s",argv[1]);
 	if (argc == 2)
 	{
 		fd = open(argv[1], O_DIRECTORY);
@@ -36,6 +36,7 @@ int		main(int argc, char **argv)
 		// printf("%d\n",ft_memcmp(ehdr.e_ident, ELFMAG, SELFMAG));
 		if (ft_memcmp(ehdr.e_ident, ELFMAG, SELFMAG) != 0) {
 			printf("Not an ELF file\n");
+			close(fd);
 			return 1;
 		}
 		return copy_binary(fd);
