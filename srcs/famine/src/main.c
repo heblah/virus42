@@ -9,11 +9,10 @@
 
 #include "famine.h"
 
-int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
+int	main(int argc, char **argv)
 {
-	void *data_target = NULL, *data_payload = NULL;
-	int target_fd = -1, payload_fd = -1;
-	long fsize_target = 0, fsize_payload = 0;
+	t_target	target;
+	t_payload	payload;
 
 	if (argc != 3)
 	{
@@ -22,8 +21,19 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 #endif
 		return 1;
 	}
+	target.info.fname = argv[1];
+	paryload.info.fname = argv[2];
 
-	target_fd = elf_open_and_map(argv[1], data_target, &fsize_target);
-	payload_fd = elf_open_and_map(argv[2], data_payload, &fsize_payload);
+	/* Processing target */
+	target.info.fd = elf_open_and_map(&target.info);
+	target.elf_hdr = (Elf64_Ehdr *)target.info.data;
+	target_entrypoint = elf_hdr->e_entry;
+#if DEBUG
+	printf("+ Target entrypoint: %p\n", (void *)target_entrypoint);
+#endif
+	target_text_segment = elf_find_gap(target_data, target_fsize, &p, &len);
+
+	/* Payload part */
+	payload_fd = elf_open_and_map(argv[2], &payload_data, &payload_fsize);
 	return 0;
 }

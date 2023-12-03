@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <elf.h>
 
@@ -15,13 +16,10 @@
  * Return the value of the opened fd on success
  * Return -1 on error
  */
-int	elf_open_and_map(char *fname, void **data, long *len)
+int	elf_open_and_map(t_info *elf);
 {
-	int fd = -1;
-	long fsize = 0;
-
-	int fd = open(fname, O_APPEND | O_RDWR, 0);
-	if (fd == -1)
+	elf->fd = open(fname, O_APPEND | O_RDWR, 0);
+	if (elf->fd == -1)
 	{
 #if DEBUG
 		perror("open:");
@@ -29,7 +27,7 @@ int	elf_open_and_map(char *fname, void **data, long *len)
 		return -1;
 	}
 
-	fsize = lseek(fd, 0, SEEK_END);
+	elf->fsize = lseek(elf->fd, 0, SEEK_END);
 	if (fsize == -1)
 	{
 #if DEBUG
@@ -37,7 +35,7 @@ int	elf_open_and_map(char *fname, void **data, long *len)
 #endif
 		return -1;
 	}
-	else if (lseek(fd, 0, SEEK_SET) == -1)
+	else if (lseek(elf->fd, 0, SEEK_SET) == -1)
 	{
 #if DEBUG
 		perror("lseek:");
@@ -45,8 +43,8 @@ int	elf_open_and_map(char *fname, void **data, long *len)
 		return -1;
 	}
 
-	*data = mmap(0, fsize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, fd, 0);
-	if (data == MAP_FAILED)
+	elf->mmap = mmap(0, elf->fsize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, fd, 0);
+	if (elf->mmap == MAP_FAILED)
 	{
 #if DEBUG
 		perror("mmap:");
@@ -55,25 +53,24 @@ int	elf_open_and_map(char *fname, void **data, long *len)
 	}
 
 #if DEBUG
-		printf(" + File mapped: %ld at %p\n", fsize, data);
+		printf(" + File mapped: %ld at %p\n", elf->fsize, elf->mmap);
 #endif
-		*len = fsize;
-		return fd;
+		return elf->fd;
 }
 
 Elf64_Phdr *	elf_find_gap(void *data, int fsize, int *p, long *len)
+Elf64_Phdr *	elf_find_gap(t_target *target)
 {
-	Elf64_Ehdr *elf_hdr = (Elf64_Ehdr *)data;
-	Elf64_Phdr *elf_seg, *text_seg;
-	int n_seg = elf_hdr->e_phnum;
-	int i = 0;
-	long text_seg, gap = fsize;
+	Elf64_Phdr *text_seg;
+	long		text_end, gap = fsize;
 
+	/* unsigned char or unsigned int ? should be the same */
 	elf_seg = (Elf64_Phdr *)((unsigned char *)elf_hdr + (unsigned int)elf_hdr->e_phoff);
 
-	for(i = 0; i < n_seg; i++)
+	for(int i = 0; i < target.elf_hdr.e_phnum; i++)
 	{
-		if (elf_seg->p_type == PT_LOAD && elf_seg->p_flags & 0x011)
+		/* PF_X | PF_W == 0x011 ie write and execute permissions */
+		if (elf_seg->p_type == PT_LOAD && elf_seg->p_flags & (PF_X | PF_W))
 		{
 #if DEBUG
 			printf(" + Found .text segment (#%d)\n", i);
