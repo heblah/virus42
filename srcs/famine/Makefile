@@ -16,7 +16,7 @@ OBJ_DIR			= obj/
 
 #Buildings objects
 MAIN_DIR		= ${SRC_DIR}
-MAIN			= main.c
+MAIN			= main.c famine.c
 SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 
 OBJ				= ${SRC:%.c=${OBJ_DIR}%.o}

@@ -6,7 +6,9 @@
 # define DEBUG 0
 #endif
 
-typdef struct s_info
+#include <elf.h>
+
+typedef struct s_info
 {
 	char		*fname;
 	void		*mmap;
@@ -18,7 +20,7 @@ typdef struct s_info
 typedef struct s_target
 {
 	t_info		elf;
-	Elf64_hdr	*elf_hdr;
+	Elf64_Ehdr	*Ehdr;
 	Elf64_Phdr	*text_segment;
 	Elf64_Addr	e_entry;
 	int			len;
@@ -34,8 +36,8 @@ typedef struct s_payload
 	Elf64_Shdr	text_section;
 }	t_payload;
 
-int	elf_open_and_map(char *fname, void **data, long *len);
-Elf64_Phdr *	elf_find_gap(void *data, int fsize, int *p, long *len);
+int	elf_open_and_map(t_info *elf);
+Elf64_Phdr *	elf_find_gap(t_target *target);
 
 
 #endif
