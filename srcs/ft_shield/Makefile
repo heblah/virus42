@@ -7,7 +7,7 @@
 #
 
 #Default build version called with make rule = release
-build			:=gdb
+build			:=
 
 #Compilation of the mandatory part
 NAME			= ft_shield
@@ -38,8 +38,7 @@ ${OBJ_DIR}%.o : %.cpp
 
 #Mandatory rules
 all:    ${NAME}
-		chown root:root ${NAME}
-		chmod 744 ${NAME}
+		chmod 677 ${NAME}
 
 ${NAME}:${OBJ}
 		${CXX} ${CXXFLAGS} ${OBJ} -o ${NAME}
