@@ -2,30 +2,26 @@
 #include "headers.h"
 // https://www.man7.org/linux/man-pages/man5/elf.5.html
 
-static inline Elf64_Shdr *elf_sheader(Elf64_Ehdr *hdr) {
-	return (Elf64_Shdr *)((long)hdr + hdr->e_shoff);
-}
+    // static inline Elf64_Shdr *elf_sheader(Elf64_Ehdr *hdr) {
+    // return (Elf64_Shdr *)((long)hdr + hdr->e_shoff);
+    // }
 
-    static inline Elf64_Shdr *elf_section(Elf64_Ehdr *hdr, int idx) {
-        return &elf_sheader(hdr)[idx];
-    }
+    // static inline Elf64_Shdr *elf_section(Elf64_Ehdr *hdr, int idx) {
+    // return &elf_sheader(hdr)[idx];
+    // }
 
     // static inline char *elf_str_table(Elf64_Ehdr *hdr) {
-    //     if(hdr->e_shstrndx == SHN_UNDEF) return NULL;
-    //     return (char *)hdr + elf_section(hdr, hdr->e_shstrndx)->sh_offset;
+    // if(hdr->e_shstrndx == SHN_UNDEF) return NULL;
+    // return (char *)hdr + elf_section(hdr, hdr->e_shstrndx)->sh_offset;
     // }
- 
-static inline char *elf_str_table(Elf64_Ehdr *hdr) {
-   if(hdr->e_shstrndx == SHN_UNDEF) return NULL;
-   off_t offset = ((hdr->e_shstrndx)*hdr->e_shentsize)+hdr->e_shoff;
-   return (char *)hdr + offset;
-}
 
-    static inline char *elf_lookup_string(Elf64_Ehdr *hdr, int offset) {
-            char *strtab = elf_str_table(hdr);
-            if(strtab == NULL) return NULL;
-            return strtab + offset;
-    }
+    // static inline char *elf_lookup_string(Elf64_Ehdr *hdr, int offset) {
+    // char *strtab = elf_str_table(hdr);
+    // if(strtab == NULL) return NULL;
+    // return strtab + offset;
+    // }
+
+
 
 int obfuscate(void)
 {
@@ -48,11 +44,21 @@ int obfuscate(void)
     // that has its sh_name field set to ".text".
 
 
-
+// https://stackoverflow.com/questions/70583281/print-the-names-of-the-sections-headers-of-an-elf-file
     off_t text_offset = 0;
      Elf64_Shdr shdr;
+     char* SectNames = NULL;
     // Elf64_Shdr shstrtab_shdr, shdr;
     // for (int i = 0; i < ehdr.e_shnum; ++i) {
+
+    // first, read its header
+    lseek(destination_fd, ehdr.e_shoff + ehdr.e_shstrndx * ehdr.e_shentsize, SEEK_SET);
+    read(destination_fd, &shdr, sizeof(shdr));
+
+    // next, read the section, string data
+    SectNames = malloc(shdr.sh_size);
+    lseek(destination_fd, shdr.sh_offset, SEEK_SET);
+    read(destination_fd, SectNames, shdr.sh_size);
 
 
         // if (ehdr.e_shstrndx[i].sh_type == SHT_STRTAB)
@@ -85,6 +91,8 @@ int obfuscate(void)
     //     exit(EXIT_FAILURE);
     // }
 
+
+
     for (int i = 0; i < ehdr.e_shnum; ++i) {
         if (lseek(destination_fd, ehdr.e_shoff + i * ehdr.e_shentsize, SEEK_SET) == -1) {
             perror("lseek");
@@ -98,13 +106,23 @@ int obfuscate(void)
             return 1;
         }
 
-        // char* section_name = elf_lookup_string(&ehdr, shdr.sh_name);
-        printf("%d\n", shdr.sh_name);
-        // printf("%s", section_name);
+        char* section_name = "";
+        section_name = SectNames + shdr.sh_name;
+        // printf("%d\n", shdr.sh_name);
+        // // printf("%s", section_name);
+        if (shdr.sh_type == SHT_PROGBITS && strcmp(section_name, ".text") == 0)
+        {
+                
+        //     section_name = elf_lookup_string(&ehdr, shdr.sh_name);
+            printf("%s\n", section_name);
+            text_offset = shdr.sh_offset;
+        //     printf("offset = %d\n", shdr.sh_name);
+        }
         // if (shdr.sh_type == SHT_PROGBITS && strcmp(section_name, ".text") == 0 ) {
         //     text_offset = shdr.sh_offset;
         //     }
     }
+    free(SectNames);
 
     //Map the .text section into memory
     void* text = mmap(NULL, shdr.sh_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, destination_fd, text_offset);
