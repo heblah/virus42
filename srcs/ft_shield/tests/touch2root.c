@@ -1,4 +1,5 @@
 
+#include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
 
@@ -9,5 +10,6 @@ int main(void)
 		printf("File creation failed\n");
 	else
 		printf("File created\n");
+	close(fd);
 	return 0;
 }
