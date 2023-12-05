@@ -1,4 +1,4 @@
-
+#include <sys/mman.h>
 #include "headers.h"
 // https://www.man7.org/linux/man-pages/man5/elf.5.html
 
@@ -46,8 +46,8 @@ int obfuscate(void)
 
 // https://stackoverflow.com/questions/70583281/print-the-names-of-the-sections-headers-of-an-elf-file
     off_t text_offset = 0;
-     Elf64_Shdr shdr;
-     char* SectNames = NULL;
+    Elf64_Shdr shdr;
+    char* SectNames = NULL;
     // Elf64_Shdr shstrtab_shdr, shdr;
     // for (int i = 0; i < ehdr.e_shnum; ++i) {
 
@@ -116,6 +116,7 @@ int obfuscate(void)
         //     section_name = elf_lookup_string(&ehdr, shdr.sh_name);
             printf("%s\n", section_name);
             text_offset = shdr.sh_offset;
+            printf("%ld\n",  shdr.sh_offset);
         //     printf("offset = %d\n", shdr.sh_name);
         }
         // if (shdr.sh_type == SHT_PROGBITS && strcmp(section_name, ".text") == 0 ) {
@@ -124,11 +125,39 @@ int obfuscate(void)
     }
     free(SectNames);
 
+    printf("%ld\n",  shdr.sh_offset);
+    printf("%ld\n",  text_offset);
+    printf("%ld\n",  shdr.sh_size);
+    printf("%d\n",  destination_fd);
+    
+    // long page_size = sysconf(_SC_PAGESIZE);
+    // if (text_offset % page_size != 0) {
+    //     printf("text_offset is not a multiple of the page size\n");
+    //     return 1;
+    // }
     //Map the .text section into memory
+    // void* text = malloc(shdr.sh_size);
+
+    
+    // Get the page size
+    // long page_size = sysconf(_SC_PAGESIZE);
+    // printf("%ld\n", page_size);
+    // Check that text_offset is a multiple of the page size
+    long page_size = 4096; // because size paging on a 64 bit system is 4096
+    if (text_offset % page_size != 0) {
+        text_offset = ((text_offset / page_size) + 1) * page_size;
+    }
+
     void* text = mmap(NULL, shdr.sh_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, destination_fd, text_offset);
     if (text == MAP_FAILED) {
         perror("mmap");
         close(destination_fd);
+        return 1;
+    }
+
+    // Change the protection of the memory region to PROT_WRITE
+    if (mprotect(text, shdr.sh_size, PROT_WRITE) == -1) {
+        perror("mprotect");
         return 1;
     }
 
@@ -137,6 +166,12 @@ int obfuscate(void)
     for (size_t i = 0; i < shdr.sh_size; ++i) {
         ((uint8_t*)text)[i] ^= key;
     }
+
+    // // Change the protection of the memory region to PROT_EXEC
+    // if (mprotect(text, shdr.sh_size, PROT_EXEC) == -1) {
+    //     perror("mprotect");
+    //     return 1;
+    // }
 
     //Write the obfuscated .text section back to the binary file
     if (lseek(destination_fd, text_offset, SEEK_SET) == -1) {
@@ -150,6 +185,6 @@ int obfuscate(void)
         close(destination_fd);
         return 1;
     }
-
+    // free(text);
     return 0;
 }

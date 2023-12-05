@@ -12,8 +12,8 @@ off_t getFileSize(int fd) {
    off_t size = lseek(fd, 0, SEEK_END);
    if (size == -1) {
        perror("lseek");
-       printf("debug lseek %ld\n", size);
-       printf("test lseek\n");
+    //    printf("debug lseek %ld\n", size);
+    //    printf("test lseek\n");
        return -1;
    }
 
