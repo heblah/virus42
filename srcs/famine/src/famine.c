@@ -57,7 +57,7 @@ int	elf_open_and_map(t_info *elf)
 	}
 
 #if DEBUG
-		printf("+File mapped: %ld bytes at %p\n", elf->fsize, elf->mmap);
+		printf("+File %s mapped: %ld bytes at %p\n", elf->fname, elf->fsize, elf->mmap);
 #endif
 		return elf->fd;
 }
