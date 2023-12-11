@@ -36,8 +36,9 @@ typedef struct s_payload
 	Elf64_Shdr	text_section;
 }	t_payload;
 
-int	elf_open_and_map(t_info *elf);
+int				elf_open_and_map(t_info *elf);
 Elf64_Phdr *	elf_find_gap(t_target *target);
+void			draw_elf(Elf64_Ehdr *ehdr);
 
 
 #endif
