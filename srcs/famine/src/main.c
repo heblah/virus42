@@ -11,8 +11,8 @@
 
 int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 {
-	t_target	target;
-	t_payload	payload;
+	t_elf	target;
+	t_elf	payload;
 
 	/*
 	if (argc != 3)
@@ -23,13 +23,13 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 		return 1;
 	}
 	*/
-	target.elf.fname = argv[1];
-	payload.elf.fname = argv[2];
+	target.fname = argv[1];
+	payload.fname = argv[2];
 
 	/* Processing target */
-	target.elf.fd = elf_open_and_map(&target.elf);
-	target.Ehdr = (Elf64_Ehdr *)target.elf.mmap;
-	draw_elf(target.Ehdr);
+	target.fd = elf_open_and_map(&target);
+	elf_x_section_counter(target.shdr, target.ehdr->e_shnum);
+	//draw_elf(target.ehdr);
 	//elf_find_gap(&target);
 
 	/*

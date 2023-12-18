@@ -104,7 +104,7 @@ void	draw_elf(Elf64_Ehdr *elf)
 	draw_ehdr(elf);
 	for (int i = 0; i < elf->e_phnum; i++)
 		draw_phdr(phdr + i, i);
-	for (int i = 1; i < elf->e_shnum; i++)
+	for (int i = 0; i < elf->e_shnum; i++)
 		draw_shdr(shdr + i, i);
 	return;
 }

@@ -17,17 +17,19 @@ typedef struct s_info
 } t_info;
 
 /* 64 bits target structure */
-typedef struct s_target
+typedef struct s_elf
 {
-	t_info		elf;
-	Elf64_Ehdr	*Ehdr;
-	Elf64_Phdr	*text_segment;
-	Elf64_Addr	e_entry;
+	char		*fname;
+	int			fd;
+	long		fsize;
+	Elf64_Ehdr	*ehdr;
+	Elf64_Phdr	*phdr;
+	Elf64_Shdr	*shdr;
 	int			len;
 	int			base;
 	long		text_end;
 	long		gap;
-} t_target;
+} t_elf;
 
 /* 64 bits payload structure */
 typedef struct s_payload
@@ -36,8 +38,11 @@ typedef struct s_payload
 	Elf64_Shdr	text_section;
 }	t_payload;
 
-int				elf_open_and_map(t_info *elf);
-Elf64_Phdr *	elf_find_gap(t_target *target);
+int				elf_open_and_map(t_elf *elf);
+Elf64_Phdr *	elf_find_gap(t_elf *target);
+unsigned int 	elf_x_section_counter(Elf64_Shdr *shdr, uint64_t shnum);
+
+/* Print elf content */
 void			draw_elf(Elf64_Ehdr *ehdr);
 
 
