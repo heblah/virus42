@@ -3,8 +3,9 @@
 
 #include <stdio.h>
 #include <elf.h>
+#include "famine.h"
 
-static void	draw_ehdr(Elf64_Ehdr *ehdr)
+static void	print_ehdr(Elf64_Ehdr *ehdr)
 {
 	printf(	"----------------------------------------\n"
 			"|                 ELF header\n"
@@ -40,7 +41,7 @@ static void	draw_ehdr(Elf64_Ehdr *ehdr)
 	return;
 }
 
-static void	draw_phdr(Elf64_Phdr *phdr, int i)
+static void	print_phdr(Elf64_Phdr *phdr, int i)
 {
 	printf(	"----------------------------------------\n"
 			"|                 Program header[%d]:%p\n"
@@ -66,7 +67,7 @@ static void	draw_phdr(Elf64_Phdr *phdr, int i)
 	return;
 }
 
-static void draw_shdr(Elf64_Shdr *shdr, int i)
+static void print_shdr(Elf64_Shdr *shdr, int i)
 {
 	printf(	"----------------------------------------\n"
 			"|                 Section header[%d]:%p\n"
@@ -96,16 +97,16 @@ static void draw_shdr(Elf64_Shdr *shdr, int i)
 	return;
 }
 
-void	draw_elf(Elf64_Ehdr *elf)
+void	print_headers(t_elf *elf)
 {
-	Elf64_Phdr	*phdr = (Elf64_Phdr *)((uint64_t)elf + (uint64_t)elf->e_phoff);
-	Elf64_Shdr	*shdr = (Elf64_Shdr *)((uint64_t)elf + (uint64_t)elf->e_shoff);
+	Elf64_Phdr	*phdr = elf->phdr;
+	Elf64_Shdr	*shdr = elf->shdr;
 
-	draw_ehdr(elf);
-	for (int i = 0; i < elf->e_phnum; i++)
-		draw_phdr(phdr + i, i);
-	for (int i = 0; i < elf->e_shnum; i++)
-		draw_shdr(shdr + i, i);
+	print_ehdr(elf->ehdr);
+	for (int i = 0; i < elf->ehdr->e_phnum; i++)
+		print_phdr(phdr + i, i);
+	for (int i = 1; i < elf->ehdr->e_shnum; i++)
+		print_shdr(shdr + i, i);
 	return;
 }
 

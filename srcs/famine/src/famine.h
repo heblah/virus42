@@ -38,12 +38,13 @@ typedef struct s_payload
 	Elf64_Shdr	text_section;
 }	t_payload;
 
+/* famine.c */
 int				elf_open_and_map(t_elf *elf);
 Elf64_Phdr *	elf_find_gap(t_elf *target);
 unsigned int 	elf_x_section_counter(Elf64_Shdr *shdr, uint64_t shnum);
 
 /* Print elf content */
-void			draw_elf(Elf64_Ehdr *ehdr);
+void			print_headers(t_elf *elf);
 
 
 #endif

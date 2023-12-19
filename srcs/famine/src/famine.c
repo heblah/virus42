@@ -96,10 +96,12 @@ unsigned int 	elf_x_section_counter(Elf64_Shdr *shdr, uint64_t shnum)
 	for(unsigned int i = 1; i < shnum; i++)
 	{
 		if (shdr[i].sh_flags & SHF_EXECINSTR)
+		{
 			n++;
-	}
 #if DEBUG
-	printf(" + code sections: %u\n", n);
+			printf(" + code section found in section %u\n", i);
 #endif
+		}
+	}
 	return n;
 }

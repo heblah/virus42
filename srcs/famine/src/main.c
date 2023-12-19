@@ -29,7 +29,7 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 	/* Processing target */
 	target.fd = elf_open_and_map(&target);
 	elf_x_section_counter(target.shdr, target.ehdr->e_shnum);
-	//draw_elf(target.ehdr);
+	print_headers(&target);
 	//elf_find_gap(&target);
 
 	/*
