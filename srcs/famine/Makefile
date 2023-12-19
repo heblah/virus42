@@ -16,7 +16,8 @@ OBJ_DIR			= obj/
 
 #Buildings objects
 MAIN_DIR		= ${SRC_DIR}
-MAIN			= main.c famine.c print_headers.c
+MAIN			= main.c famine.c
+MAIN			+= elf_analyzer.c print_headers.c
 SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 
 OBJ				= ${SRC:%.c=${OBJ_DIR}%.o}
@@ -38,8 +39,6 @@ ${OBJ_DIR}%.o : %.c
 
 #Mandatory rules
 all:    ${NAME}
-		#chown root:root ${NAME}
-		#chmod 744 ${NAME}
 
 ${NAME}:${OBJ}
 		${CC} ${CFLAGS} ${OBJ} -o ${NAME}
