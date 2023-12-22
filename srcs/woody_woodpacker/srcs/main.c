@@ -1,16 +1,8 @@
 #include "headers.h"
 
-/*
-* Parse arg error, check if directory, check if binary file or not
-* find .text section address in binary
-* encrypt .text section
-*
-*/
-
 int		main(int argc, char **argv)
 {
 	int	fd;
-	// printf("%s",argv[1]);
 	if (argc == 2)
 	{
 		fd = open(argv[1], O_DIRECTORY);
@@ -33,7 +25,7 @@ int		main(int argc, char **argv)
 			close(fd);
 			return 1;
 		}
-		// printf("%d\n",ft_memcmp(ehdr.e_ident, ELFMAG, SELFMAG));
+        // * We check if file first bytes are ELF magic bytes
 		if (ft_memcmp(ehdr.e_ident, ELFMAG, SELFMAG) != 0) {
 			printf("Not an ELF file\n");
 			close(fd);
