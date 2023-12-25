@@ -12,6 +12,7 @@
  * - Open the file specified by fname
  * - Calculate the size of this file
  * - Create a mapping in the virtual address space of the calling process
+ * - Define fd, fsize, ehdr, phdr and shdr into t_elf
  * - Return the value of the opened fd on success
  * - Return -1 on error
  */
@@ -61,3 +62,5 @@ int	elf_open_and_map(t_elf	*elf)
 #endif
 		return elf->fd;
 }
+
+

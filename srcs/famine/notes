@@ -1,0 +1,11 @@
+
+Code famine:
+- Map the payload:
+	- Determine the offset and the size of the text section
+	- Copy the text section into a pipe
+- Map the target:
+	- Find the entry point
+	- Find the end of this text section (end_txt_section) and save the e_shnum of the txt_section
+	- Copy into a pipe the content from 0 to end_txt_section
+	- Copy from the payload pipe the text_section
+
