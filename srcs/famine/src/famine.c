@@ -62,5 +62,3 @@ int	elf_open_and_map(t_elf	*elf)
 #endif
 		return elf->fd;
 }
-
-

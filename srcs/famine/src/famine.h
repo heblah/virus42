@@ -6,6 +6,7 @@
 # define DEBUG 1
 #endif
 
+#define _GNU_SOURCE
 #include <elf.h>
 
 typedef struct s_info
