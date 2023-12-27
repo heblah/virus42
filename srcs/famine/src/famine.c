@@ -6,6 +6,9 @@
 #include <sys/mman.h>
 #include <elf.h>
 
+#define MMAP_RIGHTS PROT_READ | PROT_WRITE | PROT_EXEC
+#define MMAP_FLAGS MAP_PRIVATE
+
 #include "famine.h"
 
 /*
@@ -46,7 +49,7 @@ int	elf_open_and_map(t_elf	*elf)
 		return -1;
 	}
 
-	elf->ehdr = mmap(0, elf->fsize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, elf->fd, 0);
+	elf->ehdr = mmap(0, elf->fsize, MMAP_RIGHTS, MMAP_FLAGS, elf->fd, 0);
 	if (elf->ehdr == MAP_FAILED)
 	{
 #if DEBUG

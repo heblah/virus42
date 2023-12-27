@@ -23,11 +23,11 @@ SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 OBJ				= ${SRC:%.c=${OBJ_DIR}%.o}
 DEP				= ${OBJ:.o=.d}
 
-CC				= clang
+CC				= gcc
 RM				= rm -rf
 
 #Conditionnal flags depending on the building version
-cflags.release	:= -Wall -Wextra -Werror -Wpedantic -pedantic-errors -MMD -MP
+cflags.release	:= -Wall -Wextra -Werror -Wpedantic -pedantic-errors -MMD -MP -Wno-overlength-string
 cflags.gdb		:= -g3 -D DEBUG=1
 cflags.san		:= -g3 -fsanitize=address -D DEBUG=1
 CFLAGS			= ${cflags.release} ${cflags.${build}}
