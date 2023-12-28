@@ -17,7 +17,7 @@ OBJ_DIR			= obj/
 #Buildings objects
 MAIN_DIR		= ${SRC_DIR}
 MAIN			= main.c famine.c
-MAIN			+= elf_analyzer.c print_headers.c
+MAIN			+= elf_analyzer.c print_headers.c elf_hex.c
 SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 
 OBJ				= ${SRC:%.c=${OBJ_DIR}%.o}

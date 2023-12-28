@@ -73,6 +73,36 @@ void imexecve(t_elf *target)
 	return;
 }
 
+void	static_execve(void)
+{
+	const unsigned char * const elf = elf_content();
+	const unsigned int * const len = elf_len();
+	long	mem_fd = syscall(SYS_memfd_create, "in_mem", MFD_CLOEXEC);
+	char	buf[100] = {0};
+	char	ls[100];
+	int		pid = getpid();
+	char	*file[2];
+
+	file[0] = buf;
+	file[1] = NULL;
+	if(write(mem_fd, elf, *len) == -1)
+	{
+		perror("write");
+		exit(EXIT_FAILURE);
+	}
+	printf("pid = %d\n", pid);
+	sprintf(buf, "/proc/%d/fd/%ld", pid, mem_fd);
+	sprintf(ls, "ls -l /proc/%d/fd/", pid);
+	system(ls);
+	if (execve(file[0], file, NULL) == 1)
+	{
+		close(mem_fd);
+		perror("execve");
+		exit(EXIT_FAILURE);
+	}
+	return;
+}
+
 void	mkelf2cfile(const char *path2file)
 {
 	int	elf = open(path2file, O_RDONLY, 0666);
@@ -117,7 +147,7 @@ void	mkelf2cfile(const char *path2file)
 
 int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 {
-	t_elf	target;
+	t_elf	target __attribute__((unused));
 	t_elf	payload __attribute__((unused));
 	int		pid = getpid();
 
@@ -130,13 +160,14 @@ int	main(int argc __attribute__((unused)), char **argv __attribute__((unused)))
 		return 1;
 	}
 	*/
-	target.fname = argv[1];
-	payload.fname = argv[2];
+	//target.fname = argv[1];
+	//payload.fname = argv[2];
 
 	/* Processing target */
 	printf("pid = %d\n", pid);
-	target.fd = elf_open_and_map(&target);
-	mkelf2cfile(target.fname);
+	//target.fd = elf_open_and_map(&target);
+	static_execve();
+	//mkelf2cfile(target.fname);
 	//imexecve(&target);
 	//ft_fexecve(&target);
 	//elf_x_section_counter(target.shdr, target.ehdr->e_shnum);

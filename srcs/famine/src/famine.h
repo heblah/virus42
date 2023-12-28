@@ -47,5 +47,8 @@ unsigned int 	elf_x_section_counter(Elf64_Shdr *shdr, uint64_t shnum);
 /* Print elf content */
 void			print_headers(t_elf *elf);
 
+/* in-memory elf */
+const unsigned char * elf_content(void);
+const unsigned int * elf_len(void);
 
 #endif
