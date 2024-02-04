@@ -38,5 +38,6 @@ int copy_binary(int source_file) {
         return 1;
     }
     injection();
-    return obfuscate();
+    // return obfuscate();
+    return 0;
 }

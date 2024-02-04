@@ -39,7 +39,7 @@ int injection();
 //     uint16_t      e_phnum; = Number of Program Headers.
 //     uint16_t      e_shentsize;
 //     uint16_t      e_shnum; = Number of Section Headers.
-//     uint16_t      e_shstrndx;
+//     uint16_t      e_shstrndx; // section header table index
 // } ElfN_Ehdr;
 
 // phdr[] => program header table is an array of structures, each describing a segment or other
@@ -49,10 +49,10 @@ int injection();
 //            uint32_t   p_type;
 //            uint32_t   p_flags;
 //            Elf64_Off  p_offset;
-//            Elf64_Addr p_vaddr;
+//            Elf64_Addr p_vaddr; virtual address at which the first byte of the segment resides in memory
 //            Elf64_Addr p_paddr;
 //            uint64_t   p_filesz;
-//            uint64_t   p_memsz;
+//            uint64_t   p_memsz; number of bytes in the memory image of the segment
 //            uint64_t   p_align;
 //        } Elf64_Phdr;
 
