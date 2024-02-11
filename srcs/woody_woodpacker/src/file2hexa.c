@@ -5,27 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static int	mk_namefile(const char *src, char *cfile)
-{
-	int	i = 0;
-
-	while (src[i])
-	{
-		cfile[i] = src[i];
-		i++;
-	}	
-	if (i + 6 <= NAME_MAX)
-	{
-		cfile[i++] = '_';
-		cfile[i++] = 'h';
-		cfile[i++] = 'e';
-		cfile[i++] = 'x';
-		cfile[i++] = '.';
-		cfile[i++] = 'c';
-	}
-	return i + 6;
-}
-
 static void	src2hexstr(const unsigned char *buffer, int size, int cfile_fd, int byte)
 {
 	char conv_tab[][5] = {
@@ -67,6 +46,81 @@ static void	src2hexstr(const unsigned char *buffer, int size, int cfile_fd, int 
 		byte++;
 	}
 	return;
+}
+
+static int add_file2hex(const char *file, int size, int i)
+{
+	
+	return 0;
+}
+
+static void declare_elf(int fd, int i)
+{
+	char start[] = "\tstatic unsigned char *file";
+	char middle[] = "[] = {\n";
+}
+
+static void close_elf(void)
+{
+	write()
+}
+
+int	mk_hexfile(const char *hex_file, const char **files, int n)
+{
+	int				hex_fd = -1, size_fd = -1, src_fd = -1;
+	unsigned char	*buffer = NULL;
+	int				*size = malloc(n * sizeof(int));
+	int				i = 0;
+
+	hex_fd = open(hex_file, O_CREAT | O_RDWR, 0666);
+	if (size != NULL && hex_fd != -1)
+	{
+		while (i < n)
+		{
+			src_fd = open(files[n], O_RDONLY);
+			if (src_fd == -1)
+			{
+				perror("open");
+				free(size);
+				close(hex_fd);
+				return -1;
+			}
+			declare_elf(hex_fd, i);
+			size[i] = lseek(src_fd, 0, SEEK_END);
+			if (size[i] == -1 || lseek(src_fd, 0, SEEK_SET) != 0)
+			{
+				perror("lseek");
+				free(size);
+				close(src_fd);
+				close(hex_fd);
+				return -1;
+			}
+			buffer = malloc(size[i] * sizeof(unsigned char));
+			if (buffer == NULL)
+			{
+				perror("malloc");
+				free(size);
+				close(src_fd);
+				close(hex_fd);
+				return -1;
+			}
+			if (read(src_fd, buffer, size[i]) != size[i])
+			{
+				perror("read");
+				free(size);
+				close(src_fd);
+				close(hex_fd);
+				free(buffer);
+				return -1;
+			}
+			close(src_fd);
+			add_file2hex(files[n], size[i], i);
+			i++;
+		}
+	}
+	close(hex_fd);
+	free(size);
+	return 0;
 }
 
 int	mk_cfile(const char * file)
