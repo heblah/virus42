@@ -67,7 +67,7 @@ static int	hexa_file(char **files, int n_files, int *size)
 			return -1;
 		size[i] = lseek(src_fd, 0, SEEK_END);
 		if (size[i] == -1 || lseek(src_fd, 0, SEEK_SET) != 0)
-		`	return -1;
+			return -1;
 		//write_hex_content();
 		close(src_fd);
 		i++;
@@ -87,7 +87,7 @@ static void write_size_file(int size_fd, int n_files, int *size)
 	char func[] = "int get_hex_size(int i)\n{\n\tstatic int *sizes[N_FILES];\n";
 	char size_def[] = "\tstatic int size";
 	char size_addr[] = "] = &size";
-	char sizes[] = "sizes[";
+	char sizes[] = "\tsizes[";
 	char equal[] = " = ";
 	char eol[] = ";\n";
 	char eofunc[] = "\treturn i < N_FILES ? sizes[i] ? -1;\n}\n";
@@ -121,8 +121,9 @@ static int	size_file(int n_files, int *size)
 
 	if (size_fd == -1)
 		return -1;
-	write_size_file(size_fd, n_files, size)
+	write_size_file(size_fd, n_files, size);
 	close(size_fd);
+	return 0;
 }
 
 /* End of the functions to write the sizes of the packed-files */
