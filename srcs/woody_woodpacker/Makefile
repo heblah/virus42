@@ -16,7 +16,7 @@ OBJ_DIR			= obj/
 
 #Buildings objects
 MAIN_DIR		= ${SRC_DIR}
-MAIN			= main.c file2hexa.c
+MAIN			= main.c hexa_conversion.c
 MAIN			+= 
 SRC				+= $(addprefix ${MAIN_DIR}, ${MAIN})
 
