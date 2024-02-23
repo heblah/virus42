@@ -1,7 +1,6 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <fcntl.h>
 
@@ -80,7 +79,6 @@ static int	write_hex_content(int content_fd, int content_size, int index, int sr
 		else if (byte != content_size - 1)
 			write(content_fd, ", ", 2);
 		byte++;
-		printf("byte = %d\n", byte);
 		
 	}
 	write(content_fd, "\n\t};", 4);
