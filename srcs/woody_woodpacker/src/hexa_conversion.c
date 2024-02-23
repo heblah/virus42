@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <fcntl.h>
+#include<sys/syscall.h>
+#include<sys/wait.h>
+#include<sys/mman.h>
 
 #define HEX_SIZE_FILE "src/hex_size_file.c"
 #define HEX_CONTENT_FILE "src/hex_content_file.c"
@@ -196,6 +199,8 @@ int mk_hex_files(int n_files, char **files)
 
 	if (size == NULL)
 		return -1;
+	syscall(SYS_unlink, HEX_SIZE_FILE);
+	syscall(SYS_unlink, HEX_CONTENT_FILE);
 	hexa_file(files, n_files, size);
 	size_file(n_files, size);
 	free(size);
