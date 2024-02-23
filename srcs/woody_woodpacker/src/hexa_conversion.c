@@ -141,13 +141,14 @@ static int	hexa_file(char **files, int n_files, int *size)
 static void write_size_file(int size_fd, int n_files, int *size)
 {
 	char define[] = "\n#define N_FILES ";
-	char func[] = "int get_hex_size(int i)\n{\n\tstatic int *sizes[N_FILES];\n";
+	char func[] = "\n\nint get_hex_size(int i)\n{\n\tstatic int sizes[N_FILES];\n";
 	char size_def[] = "\tstatic int size";
-	char size_addr[] = "] = &size";
+	char size_addr[] = "] = size";
 	char sizes[] = "\tsizes[";
 	char equal[] = " = ";
 	char eol[] = ";\n";
 	char eofunc[] = "\treturn i < N_FILES ? sizes[i] : -1;\n}\n";
+	char get_n_files[] = "\nint get_n_files(void) \n{\n\treturn N_FILES;\n}\n";
 	int i = 0;
 
 	write(size_fd, define, sizeof(define) - 1);
@@ -170,6 +171,7 @@ static void write_size_file(int size_fd, int n_files, int *size)
 		i++;
 	}
 	write(size_fd, eofunc, sizeof(eofunc) - 1);
+	write(size_fd, get_n_files, sizeof(get_n_files) - 1);
 }
 
 static int	size_file(int n_files, int *size)

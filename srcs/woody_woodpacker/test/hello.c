@@ -3,6 +3,6 @@
 
 int main()
 {
-	printf("hello mother fucker !\n");
+	printf("hello minus !\n");
 	return 0;
 }
