@@ -56,7 +56,7 @@ fclean: clean
 		${RM} ${NAME}
 		${RM} src/hex_content_file.c
 		${RM} src/hex_size_file.c
-		${RM} PACKED
+		${RM} ${PACKED}
 
 re:     fclean
 		${RM} src/hex_size_file.c
