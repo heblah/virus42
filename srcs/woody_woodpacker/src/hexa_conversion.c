@@ -1,6 +1,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <fcntl.h>
 
@@ -56,11 +57,11 @@ static int	write_hex_content(int content_fd, int content_size, int index, int sr
 		"0xf0", "0xf1", "0xf2", "0xf3", "0xf4", "0xf5", "0xf6", "0xf7", "0xf8", "0xf9",
 		"0xfa", "0xfb", "0xfc", "0xfd", "0xfe", "0xff"
 	};
-	uint8_t byte = 0;
+	int32_t byte = 0;
 	uint8_t *plain_txt_buf = malloc(content_size);
 	uint8_t *cypher_txt_buf __attribute__((unused)) = NULL;
 	char	name[] = "\tstatic unsigned char file";
-	char	brackets[] = "[] = {\n\t";
+	char	brackets[] = "[] = {\n\t\t";
 
 	if (plain_txt_buf == NULL || read(src_fd, plain_txt_buf, content_size) != content_size)
 		return -1;
@@ -79,6 +80,8 @@ static int	write_hex_content(int content_fd, int content_size, int index, int sr
 		else if (byte != content_size - 1)
 			write(content_fd, ", ", 2);
 		byte++;
+		printf("byte = %d\n", byte);
+		
 	}
 	write(content_fd, "\n\t};", 4);
 	free(plain_txt_buf);
