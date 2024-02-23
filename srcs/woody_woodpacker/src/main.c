@@ -1,6 +1,6 @@
 
 #include "woody.h"
-#define N_FILES 10
+#define N_FILES 13
 #include <unistd.h>
 
 int	main(int argc __attribute((unused)), char **argv __attribute__((unused)))
