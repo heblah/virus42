@@ -11,6 +11,7 @@ build			:=gdb
 
 #Compilation of the mandatory part
 NAME			= woodywood_packer
+PACKED			= woody
 SRC_DIR			= src/
 OBJ_DIR			= obj/
 
@@ -53,8 +54,12 @@ clean:
 
 fclean: clean
 		${RM} ${NAME}
+		${RM} src/hex_content_file.c
+		${RM} src/hex_size_file.c
+		${RM} PACKED
 
 re:     fclean
+		${RM} src/hex_size_file.c
 		${MAKE} all
 
 #Dependencies list
