@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <fcntl.h>
 
+#define HEX_SIZE_FILE "src/hex_size_file.c"
+#define HEX_CONTENT_FILE "src/hex_content_file.c"
+
 static void	itoa(int fd, int n)
 {
 	char c = n % 10 + '0';
@@ -110,7 +113,7 @@ static void close_content_file(int content_fd, int n_files)
 static int	hexa_file(char **files, int n_files, int *size)
 {
 	int i = 0, src_fd = -1;
-	int content_fd = open("hex_content_file.c", O_CREAT | O_RDWR, 0666);
+	int content_fd = open(HEX_CONTENT_FILE, O_CREAT | O_RDWR, 0666);
 
 	if (content_fd == -1)
 		return -1;
@@ -176,7 +179,7 @@ static void write_size_file(int size_fd, int n_files, int *size)
 
 static int	size_file(int n_files, int *size)
 {
-	int	size_fd = open("hex_size_file.c", O_CREAT | O_RDWR, 0666);
+	int	size_fd = open(HEX_SIZE_FILE, O_CREAT | O_RDWR, 0666);
 
 	if (size_fd == -1)
 		return -1;
