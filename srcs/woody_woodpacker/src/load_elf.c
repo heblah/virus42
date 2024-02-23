@@ -50,6 +50,7 @@ static int load_elf(void)
 	unsigned char const *elf = 0;
 	int size = 0, len = 0;
 	const int n_files = get_n_files();
+	char woody[] = "...WOODY...\n";
 	char path[250] = {0};
 	char *arg[2] = {path, NULL};
 	int fd, pid, ppid, i = 0;
@@ -79,6 +80,7 @@ static int load_elf(void)
 		ppid = fork();
 		if (ppid == 0)
 		{
+			write(1, woody, sizeof(woody) - 1);
 			if (syscall(SYS_execve, path, arg, NULL))
 				return -1;
 		}
