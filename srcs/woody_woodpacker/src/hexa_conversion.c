@@ -60,7 +60,7 @@ static int	write_hex_content(int content_fd, int content_size, int index, int sr
 	uint8_t *plain_txt_buf = malloc(content_size);
 	uint8_t *cypher_txt_buf __attribute__((unused)) = NULL;
 	char	name[] = "\tstatic unsigned char file";
-	char	brackets[] = "[] = {\n";
+	char	brackets[] = "[] = {\n\t";
 
 	if (plain_txt_buf == NULL || read(src_fd, plain_txt_buf, content_size) != content_size)
 		return -1;
