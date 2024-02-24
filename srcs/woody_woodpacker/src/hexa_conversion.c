@@ -3,9 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <fcntl.h>
-#include<sys/syscall.h>
-#include<sys/wait.h>
-#include<sys/mman.h>
+#include <sys/syscall.h>
+#include <sys/wait.h>
 
 #define HEX_SIZE_FILE "src/hex_size_file.c"
 #define HEX_CONTENT_FILE "src/hex_content_file.c"

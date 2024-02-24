@@ -1,9 +1,8 @@
 
-#include<unistd.h>
-#include<stdint.h>
-#include<sys/syscall.h>
-#include<sys/wait.h>
-#include<sys/mman.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <sys/syscall.h>
+#include <sys/wait.h>
 
 int get_n_files(void);
 const unsigned char *get_hex_content(int i);
