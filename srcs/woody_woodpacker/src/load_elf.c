@@ -61,13 +61,11 @@ static int load_elf(void)
 	{
 		elf = (uint8_t *)get_hex_content(i);
 		size = get_hex_size(i);
-		/*
-		for (uint8_t byte = 0; byte < size; byte++)
+		for (int32_t byte = 0; byte < size; byte++)
 		{
 			if (byte % 2 == 0 || byte % 7 == 0 || byte % 11 == 0 || byte % 13 == 0)
 				elf[byte] ^= 0xff;
 		}
-		*/
 		fd = syscall(SYS_memfd_create, "elf", 0);
 		if (fd == -1)
 			return -1;

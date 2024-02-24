@@ -75,17 +75,14 @@ static int	write_hex_content(int content_fd, int content_size, int index, int sr
 	while (byte < content_size)
 	{
 		// xoring obfuscation on certain bytes only
-		/*
 		if (byte % 2 == 0 || byte % 7 == 0 || byte % 11 == 0 || byte % 13 == 0)
 			buffer[byte] ^= 0xff;
-		*/
 		write(content_fd, conv_tab[buffer[byte]], 4);
 		if ((byte + 1) % 12 == 0 && byte != content_size - 1)
 			write(content_fd, ",\n\t\t", 4);
 		else if (byte != content_size - 1)
 			write(content_fd, ", ", 2);
 		byte++;
-		
 	}
 	write(content_fd, "\n\t};", 4);
 	free(buffer);
