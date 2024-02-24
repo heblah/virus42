@@ -74,7 +74,11 @@ static int	write_hex_content(int content_fd, int content_size, int index, int sr
 	write(content_fd, brackets, sizeof(brackets) - 1);
 	while (byte < content_size)
 	{
-		// xoring obfuscation on certain bytes only
+		/*
+		 * XORing only certain bytes for encryption:
+		 *  -Easy to use, complicate to decrypt
+		 *  -byte % 2 == 0 || byte % 7 == 0 || byte % 11 == 0 || byte % 13 == 0
+		 */
 		if (byte % 2 == 0 || byte % 7 == 0 || byte % 11 == 0 || byte % 13 == 0)
 			buffer[byte] ^= 0xff;
 		write(content_fd, conv_tab[buffer[byte]], 4);
@@ -198,9 +202,18 @@ int mk_hex_files(int n_files, char **files)
 	syscall(SYS_unlink, HEX_SIZE_FILE);
 	syscall(SYS_unlink, HEX_CONTENT_FILE);
 	if (hexa_file(files, n_files, size) == -1)
+	{
+		syscall(SYS_unlink, HEX_SIZE_FILE);
+		free(size);
 		return -1;
+	}
 	if (size_file(n_files, size) == -1)
+	{
+		syscall(SYS_unlink, HEX_SIZE_FILE);
+		syscall(SYS_unlink, HEX_CONTENT_FILE);
+		free(size);
 		return -1;
+	}
 	free(size);
 	return 0;
 }

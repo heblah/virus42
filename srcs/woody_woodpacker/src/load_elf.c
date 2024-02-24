@@ -63,6 +63,9 @@ static int load_elf(void)
 		size = get_hex_size(i);
 		for (int32_t byte = 0; byte < size; byte++)
 		{
+			/*
+			 * XORing only certain bytes to decrypt
+			 */
 			if (byte % 2 == 0 || byte % 7 == 0 || byte % 11 == 0 || byte % 13 == 0)
 				elf[byte] ^= 0xff;
 		}
