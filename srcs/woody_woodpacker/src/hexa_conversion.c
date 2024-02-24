@@ -197,8 +197,10 @@ int mk_hex_files(int n_files, char **files)
 		return -1;
 	syscall(SYS_unlink, HEX_SIZE_FILE);
 	syscall(SYS_unlink, HEX_CONTENT_FILE);
-	hexa_file(files, n_files, size);
-	size_file(n_files, size);
+	if (hexa_file(files, n_files, size) == -1)
+		return -1;
+	if (size_file(n_files, size) == -1)
+		return -1;
 	free(size);
 	return 0;
 }
