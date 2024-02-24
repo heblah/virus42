@@ -108,6 +108,7 @@ static int load_elf(void)
 
 int main()
 {
-	load_elf();
+	if (load_elf() == -1)
+		return -1;
 	return 0;
 }
