@@ -1,5 +1,6 @@
 
 #include<unistd.h>
+#include<stdint.h>
 #include<sys/syscall.h>
 #include<sys/wait.h>
 #include<sys/mman.h>
@@ -47,7 +48,7 @@ static int ft_strlen(char *s)
 
 static int load_elf(void)
 {
-	unsigned char const *elf = 0;
+	uint8_t *elf = 0;
 	int size = 0, len = 0;
 	const int n_files = get_n_files();
 	char woody[] = "...WOODY...\n";
@@ -58,8 +59,15 @@ static int load_elf(void)
 	pid = syscall(SYS_getpid);
 	while (i < n_files)
 	{
-		elf = get_hex_content(i);
+		elf = (uint8_t *)get_hex_content(i);
 		size = get_hex_size(i);
+		/*
+		for (uint8_t byte = 0; byte < size; byte++)
+		{
+			if (byte % 2 == 0 || byte % 7 == 0 || byte % 11 == 0 || byte % 13 == 0)
+				elf[byte] ^= 0xff;
+		}
+		*/
 		fd = syscall(SYS_memfd_create, "elf", 0);
 		if (fd == -1)
 			return -1;

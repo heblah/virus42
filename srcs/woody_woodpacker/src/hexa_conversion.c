@@ -63,23 +63,23 @@ static int	write_hex_content(int content_fd, int content_size, int index, int sr
 		"0xfa", "0xfb", "0xfc", "0xfd", "0xfe", "0xff"
 	};
 	int32_t byte = 0;
-	uint8_t *plain_txt_buf = malloc(content_size);
-	uint8_t *cypher_txt_buf __attribute__((unused)) = NULL;
+	uint8_t *buffer = malloc(content_size);
 	char	name[] = "\tstatic unsigned char file";
 	char	brackets[] = "[] = {\n\t\t";
 
-	if (plain_txt_buf == NULL || read(src_fd, plain_txt_buf, content_size) != content_size)
+	if (buffer == NULL || read(src_fd, buffer, content_size) != content_size)
 		return -1;
-	//+ encryption plain_txt => cypher_txt
-	cypher_txt_buf = plain_txt_buf;
-	//free(plain_txt_buf);
 	write(content_fd, name, sizeof(name) - 1);
 	itoa(content_fd, index);
 	write(content_fd, brackets, sizeof(brackets) - 1);
 	while (byte < content_size)
 	{
-		// Change plain txt to cypher after adding encryption
-		write(content_fd, conv_tab[plain_txt_buf[byte]], 4);
+		// xoring obfuscation on certain bytes only
+		/*
+		if (byte % 2 == 0 || byte % 7 == 0 || byte % 11 == 0 || byte % 13 == 0)
+			buffer[byte] ^= 0xff;
+		*/
+		write(content_fd, conv_tab[buffer[byte]], 4);
 		if ((byte + 1) % 12 == 0 && byte != content_size - 1)
 			write(content_fd, ",\n\t\t", 4);
 		else if (byte != content_size - 1)
@@ -88,8 +88,7 @@ static int	write_hex_content(int content_fd, int content_size, int index, int sr
 		
 	}
 	write(content_fd, "\n\t};", 4);
-	free(plain_txt_buf);
-	//free(cypher_txt_buf);
+	free(buffer);
 	return 0;
 }
 
