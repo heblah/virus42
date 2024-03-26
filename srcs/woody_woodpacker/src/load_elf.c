@@ -75,7 +75,7 @@ static int load_elf(void)
 			return -1;
 
 		/*
-		 * path to execute the fd from memfd_create:
+		 * Build path to execute the fd from memfd_create:
 		 *  - /proc/$pid/fd/$fd
 		 */
 		add_str(path, 0, "/proc/");

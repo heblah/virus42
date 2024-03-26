@@ -7,7 +7,7 @@
 #
 
 #Default build version called with make rule = release
-build			:=gdb
+build			:=san
 
 #Compilation of the mandatory part
 NAME			= woodywood_packer
@@ -28,9 +28,9 @@ CC				= gcc
 RM				= rm -rf
 
 #Conditionnal flags depending on the building version
-cflags.release	:= -Wall -Wextra -Werror -Wpedantic -pedantic-errors -MMD -MP -Wno-overlength-string
-cflags.gdb		:= -g3 -D DEBUG=1
+cflags.release	:= -Wall -Wextra -Wpedantic -pedantic-errors -Werror -MMD -MP #-Wno-overlength-string
 cflags.san		:= -g3 -fsanitize=address -D DEBUG=1
+cflags.gdb		:= -g3 -D_DEBUG=1_FORTIFY_SOURCE=2
 CFLAGS			= ${cflags.release} ${cflags.${build}}
 export			CFLAGS
 
@@ -44,6 +44,7 @@ all:    ${NAME}
 ${NAME}:${OBJ}
 		${CC} ${CFLAGS} ${OBJ} -o ${NAME}
 
+check:	all
 #Compile and run program
 run:	all
 		./${NAME}

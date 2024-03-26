@@ -128,9 +128,11 @@ static int	hexa_file(char **files, int n_files, int *size)
 		size[i] = lseek(src_fd, 0, SEEK_END);
 		if (size[i] == -1 || lseek(src_fd, 0, SEEK_SET) != 0)
 			return -1;
-		//bufferize
-		//encryption
-		write_hex_content(content_fd, size[i], i, src_fd);
+		if (write_hex_content(content_fd, size[i], i, src_fd) == -1)
+		{
+			syscall(SYS_unlink, HEX_CONTENT_FILE);
+			return -1;
+		}
 		close(src_fd);
 		i++;
 	}
